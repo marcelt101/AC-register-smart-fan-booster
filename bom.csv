@@ -1,7 +1,7 @@
 Buy,Group,Ref,Qty per vent,Part,Spec / example part number,Footprint / form,Notes
 YES,Controller,U1,1,Raspberry Pi Pico W,"Pico WH (headers pre-soldered) is easiest",Module,"Must be the W (Wi-Fi) version"
 YES,Controller,—,2,Female header 1x20,"2.54 mm pitch, straight",THT,"Socket for the Pico so it can be swapped"
-YES,Power stage,Q1,1,AO3400A N-MOSFET,"30 V 5.7 A logic-level",SOT-23 (SMD),"Buy a 10-pack; tiny but hand-solderable"
+YES,Power stage,Q1,1,SI2302CDS-T1-GE3 N-MOSFET (Vishay),"20 V 2.9 A, 57 mOhm @ 4.5 V / 75 mOhm @ 2.5 V gate",SOT-23 (SMD),"Stocked at Mouser; same pinout as AO3400A (also fine if you find one)"
 YES,Power stage,D1,1,SS24 Schottky diode,"2 A 40 V (SS14 OK for 3 fans)",SMA (SMD),"Stripe = cathode, to +5V"
 YES,Power stage,L1,1,Inductor 100 uH shielded,"Isat >= 1.5 A, DCR <= 0.3 ohm, e.g. Bourns SRR1260-101M",12 x 12 mm SMD,"Check Isat on the datasheet"
 YES,Power input,J7,1,USB-C receptacle power-only 6-pin,"GCT USB4125-GF-A or equivalent 6P",SMD pads + THT shell,"Fine tip + flux for the 1 mm-pitch pads"

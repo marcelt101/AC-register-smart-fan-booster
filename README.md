@@ -27,7 +27,7 @@ vent-fans/
 | 2 | Cap only across the fans | 100 µF + 10 µF **on the 5 V rail** (input) as well | Moving caps alone (no inductor) made it worse: every pulse recharged the fans' internal capacitors through the FET with **13–19 A spikes**. The buck version peaks at **0.4 A**. See `plot_waveforms_60pct.png`. |
 | 3 | 25 kHz PWM | 40 kHz | Still inaudible. A 100 µH inductor is enough at this frequency (ripple ≈ 0.15 A). |
 | 4 | Speed jumps instantly | **Soft-start in firmware**: 2 % every 20 ms | Going straight from 0 to 60 % rings the LC filter: **2.1 A** inductor peak. With the slew limiter it's **0.44 A**, so a small 1 A inductor never saturates. See `plot_powerup.png`. |
-| 5 | IRLZ44N / AO3400 | **AO3400A** (SOT-23) only | Simulated Rds(on) ≈ 32 mΩ at the Pico's 3.3 V gate drive. It dissipates ~6 mW, so no heatsink. The IRLZ44N is only specified from 4 V gate drive and is huge. |
+| 5 | IRLZ44N / AO3400 | **SI2302CDS** (Vishay, SOT-23; AO3400A also fits) | Fully on from the Pico's 3.3 V gate drive (75 mΩ max at 2.5 V). The simulations used an AO3400A model (~32 mΩ); the SI2302CDS's higher resistance still means under 50 mW even with 4 fans at full speed, so no heatsink. Chosen because Mouser stocks it. The IRLZ44N is only specified from 4 V gate drive and is huge. |
 | 6 | Breadboard wiring | **Carrier PCB, 80 × 60 mm**, through-hole resistors and capacitors, **USB-C power socket**: Pico W socketed, 4 keyed fan headers, override-switch header, DS18B20 duct-probe header | Fewer loose joints in a dusty, warm, vibrating spot. Fans unplug for cleaning. |
 | 7 | Automation used `delay` + `trigger.to_state` | `for:` on the triggers, re-sync on HA restart and when the board reconnects | The old version could leave fans running after an HA restart. `for:` doesn't drop a pending off when the thermostat chatters. |
 | 8 | ESPHome reboots when HA is down | `reboot_timeout: 0s`, plus an on-board fallback from the duct probe | The fans keep working (or stay safely off) with HA down. |
@@ -63,7 +63,7 @@ Shopping list with what to buy marked: [`BOM.md`](BOM.md) (and [`bom.csv`](bom.c
 | R6, R7 | 2 | 5.1 kΩ ¼ W | THT axial, 7.62 mm | CC1/CC2 pull-downs. **Must be 5.1k**: without them a USB-C charger supplies no power. |
 | F1 | 1 | Resettable fuse (PTC), 1.5–2 A hold, radial | 5.1 mm leads (Bourns MF-RHT200 footprint) | Protects the wiring in the wall if something shorts |
 | D2 | 1 | 1N5819 Schottky | THT DO-41 | Feeds the Pico's VSYS from the 5 V rail; stops back-feed into your PC when you flash over the Pico's micro-USB |
-| Q1 | 1 | AO3400A N-MOSFET | SOT-23 | Logic-level, 30 V, 5.7 A |
+| Q1 | 1 | SI2302CDS-T1-GE3 N-MOSFET (Vishay; AO3400A also fits) | SOT-23 | Logic-level, 20 V 2.9 A, 75 mΩ at 2.5 V gate. Stocked at Mouser |
 | L1 | 1 | 100 µH shielded power inductor, **Isat ≥ 1.5 A, DCR ≤ 0.3 Ω** | Bourns SRR1260 (12.5 mm) | Sized for 4 fans. Check Isat on the datasheet of whatever you buy. |
 | D1 | 1 | SS24 Schottky, 2 A 40 V (SS14 is fine for 3 fans) | SMA | Stripe (cathode) to +5 V |
 | C1, C3 | 2 | 100 µF 10 V+ low-ESR electrolytic | radial 6.3 mm, 2.5 mm pitch | C1 = input, C3 = across the fans |

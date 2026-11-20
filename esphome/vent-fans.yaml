@@ -1,6 +1,6 @@
 # Vent booster fans - Raspberry Pi Pico W on the vent_fans carrier PCB.
 #
-# GP15 drives the AO3400A low-side buck at 40 kHz. Thanks to L1/C3 the fans get
+# GP15 drives the SI2302CDS (Q1) low-side buck at 40 kHz. Thanks to L1/C3 the fans get
 # smooth DC (about duty x 5 V) instead of chopped 5 V, so the speed setting
 # really changes fan speed and the fans stay quiet (see ../sim).
 #

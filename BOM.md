@@ -14,7 +14,7 @@ those.
 | 🛒 | U1 | 1 | Raspberry Pi Pico W | Pico **WH** (headers pre-soldered) is easiest | Must be the W (Wi-Fi) version |
 | 🛒 | — | 2 | Female header 1×20, 2.54 mm | straight | Socket for the Pico |
 | **Power stage** ||||||
-| 🛒 | Q1 | 1 | AO3400A N-MOSFET | SOT-23 (SMD) | Buy a 10-pack |
+| 🛒 | Q1 | 1 | **SI2302CDS-T1-GE3** N-MOSFET (Vishay), 20 V 2.9 A, 75 mΩ at 2.5 V gate | SOT-23 (SMD) | Stocked at Mouser. Same pinout as the AO3400A it replaces. Buy a few spares |
 | 🛒 | D1 | 1 | SS24 Schottky, 2 A 40 V | SMA (SMD) | SS14 OK for 3 fans. Not a 1N4148 |
 | 🛒 | L1 | 1 | 100 µH shielded inductor, Isat ≥ 1.5 A, DCR ≤ 0.3 Ω | 12 × 12 mm SMD, e.g. Bourns SRR1260-101M | Check Isat on the datasheet |
 | **Power input** ||||||
