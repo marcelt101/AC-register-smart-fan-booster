@@ -74,9 +74,13 @@ PARTS = {
            (95.25, 116.84), 270, {1: "OVR_ON_J", 2: "OVR_ON"}, "Series protection for off-board switch wire."),
     "R5": ("Device:R", "1k", "Resistor_SMD:R_0805_2012Metric",
            (95.25, 121.92), 270, {1: "OVR_OFF_J", 2: "OVR_OFF"}, "Series protection for off-board switch wire."),
-    "J6": ("Connector_Generic:Conn_01x03", "Override switch", "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical",
+    "J6": ("Connector_Generic:Conn_01x03", "Override", "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical",
            (116.84, 119.38), 0, {1: "OVR_ON_J", 2: "GND", 3: "OVR_OFF_J"},
            "ON-OFF-ON toggle: 1 = ON lug, 2 = common (centre lug), 3 = OFF lug. Centre position = AUTO."),
+    "SW1": ("Switch:SW_SPDT_MSM", "ON-OFF-ON toggle", "",
+            (144.78, 119.38), 180, {3: "OVR_ON_J", 1: "OVR_OFF_J", 2: "GND"},
+            "OFF-BOARD. SPDT centre-off toggle (e.g. MTS-103) on the wall plate or a small box, "
+            "3-core cable to J6. Centre lug = common (J6 pin 2)."),
     "R3": ("Device:R", "4.7k", "Resistor_SMD:R_0805_2012Metric",
            (101.6, 143.51), 0, {1: "+3V3", 2: "ONEWIRE"},
            "1-Wire pull-up for the DS18B20 duct probe."),
@@ -97,6 +101,8 @@ TEXT = {
     "R4": ((0, -2.54), (0, 2.54), ""),
     "R5": ((0, 2.54), (0, 5.08), ""),
     "R2": ((-2.54, -1.27), (-2.54, 1.27), " (justify right)"),
+    "J6": ((0, -6.35), (0, 6.35), ""),
+    "SW1": ((0, -6.35), (0, 12.7), ""),
     "Q1": ((5.08, -1.27), (5.08, 1.27), " (justify left)"),
     **{f"J{i}": ((1.27, 8.89), (1.27, 11.43), " (justify left)") for i in (1, 2, 3, 4)},
     "D1": ((2.54, -1.27), (2.54, 1.27), " (justify right)"),  # flipped by the 270 deg rotation
@@ -179,7 +185,8 @@ def pins_of(sym):
                 if x[0] == "pin":
                     at = next(y for y in x if isinstance(y, list) and y[0] == "at")
                     num = next(y for y in x if isinstance(y, list) and y[0] == "number")[1].strip('"')
-                    res[num] = (float(at[1]), float(at[2]), float(at[3]) if len(at) > 3 else 0.0)
+                    if num not in res:  # feed-through header: same number on both sides
+                        res[num] = (float(at[1]), float(at[2]), float(at[3]) if len(at) > 3 else 0.0)
                 else:
                     walk(x)
     walk(sym)
@@ -360,8 +367,9 @@ def build_schematic():
         rdx, vdx, just = TEXT.get(ref, ((3.81, -1.27), (3.81, 1.27), " (justify left)"))
         pin_entries = "\n".join(f'    (pin {q(n)} (uuid {uid()}))' for n in pins)
         fa = rot if rot in (90, 270) else 0
+        onb = "yes" if fp else "no"
         items.append(f'''  (symbol (lib_id {q(lib_id)}) (at {sx} {sy} {rot}) (unit 1)
-    (in_bom yes) (on_board yes) (dnp no) (uuid {uid()})
+    (in_bom yes) (on_board {onb}) (dnp no) (uuid {uid()})
     (property "Reference" {q(ref)} (at {G(sx + rdx[0])} {G(sy + rdx[1])} {fa}) (effects (font (size 1.27 1.27)){just}))
     (property "Value" {q(value)} (at {G(sx + vdx[0])} {G(sy + vdx[1])} {fa}) (effects (font (size 1.27 1.27)){just}))
     (property "Footprint" {q(fp)} (at {sx} {sy} 0) (effects (font (size 1.27 1.27)) hide))
@@ -433,6 +441,23 @@ def build_schematic():
     poly(P("U1", 24), P("R4", 2)); poly(P("R4", 1), P("J6", 1))
     poly(P("U1", 22), P("R5", 2)); poly(P("R5", 1), P("J6", 3))
     stub_power("J6", 2, "GND", (-1, 0))
+    # 3-core cable from J6 to the off-board switch: ON over the top of J6, OFF
+    # underneath, common to GND (in the cable it is J6 pin 2)
+    j1, j3 = P("J6", 1), P("J6", 3)
+    on, off, com = P("SW1", 3), P("SW1", 1), P("SW1", 2)
+    poly(j1, (j1[0], 109.22), (134.62, 109.22), (134.62, on[1]), on)
+    poly(j3, (j3[0], 129.54), (134.62, 129.54), (134.62, off[1]), off)
+    poly(com, (G(com[0] + 2.54), com[1]), (G(com[0] + 2.54), G(com[1] + 2.54)))
+    power("GND", G(com[0] + 2.54), G(com[1] + 2.54))
+    # dashed box: this part is not on the PCB
+    bx0, by0, bx1, by1 = 129.54, 104.14, 160.02, 134.62
+    items.append(f'  (polyline (pts (xy {bx0} {by0}) (xy {bx1} {by0}) (xy {bx1} {by1}) (xy {bx0} {by1}) (xy {bx0} {by0}))\n'
+                 f'    (stroke (width 0) (type dash)) (uuid {uid()}))')
+    text(129.54, 102.87, "OFF-BOARD: on the wall plate / grille", 1.27)
+    text(129.54, 137.16, "3-core cable to J6; common = J6 pin 2", 1.27)
+    text(135.89, 115.57, "ON", 1.0)
+    text(135.89, 125.73, "OFF", 1.0)
+    text(146.05, 115.57, "centre = AUTO", 1.0)
 
     # DS18B20: GP16 -> DQ with the 4.7k pull-up to 3V3
     g16 = P("U1", 21)
@@ -482,7 +507,6 @@ def build_schematic():
     text(129.54, 40.64, "POWER STAGE: Q1 switches at 40 kHz, L1 + C3 filter it to DC across the fans.")
     text(129.54, 45.72, "FAN- is NOT ground. Never tie a fan's black wire to GND or to the metal duct.")
     text(129.54, 50.8, "3 fans fitted; J4 is optional (4 x 0.25 A fans = 1 A max).", 1.27)
-    text(101.6, 109.22, "Override: ON-OFF-ON toggle. Centre = AUTO", 1.27)
     text(88.9, 157.48, "DS18B20 duct probe: HA sensor + fallback when HA is down", 1.27)
 
     libs = "\n".join("    " + dump(s, 2) for s in used.values())

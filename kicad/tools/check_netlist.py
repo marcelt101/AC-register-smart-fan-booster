@@ -12,6 +12,8 @@ for blk in open(net_file).read().split("(net (code")[1:]:
     nets[name] = set(re.findall(r'\(node \(ref "([^"]+)"\) \(pin "([^"]+)"\)', blk))
 want = {}
 for ref, (lib, val, fp, pos, rot, pn, desc) in g.PARTS.items():
+    if not fp:  # off-board parts (the toggle switch) are left out of KiCad's netlist
+        continue
     for p, n in pn.items():
         want.setdefault(n, set()).add((ref, str(p)))
 bad = 0

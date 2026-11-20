@@ -66,7 +66,7 @@ between circuits is what matters, not the third digit. To re-run:
 | J1–J4 | 3–4 | 3-pin 2.54 mm fan header (KF2510 / Molex KK style) | `FanPinHeader_1x03` | J4 only for a 4th fan. 2-pin fan plugs fit pins 1–2. |
 | J5, R3 | 1 + 1 | 3-pin header + 4.7 kΩ 0805 | | For the DS18B20 probe (R3 is its pull-up) |
 | J6, R4, R5 | 1 + 2 | 3-pin header + 1 kΩ 0805 ×2 | | Override switch. R4/R5 protect the Pico from the off-board wire. |
-| SW | 1 | ON-OFF-ON (centre-off) SPDT toggle, e.g. MTS-103, + 3-wire cable | | Mount on the wall plate, grille or a small box. Any low-voltage switch works (3.3 V, < 1 mA). |
+| SW1 | 1 | ON-OFF-ON (centre-off) SPDT toggle, e.g. MTS-103, + 3-core cable + 3-pin 2.54 mm housing | off-board | Drawn on the schematic in the dashed off-board box. Mount on the wall plate, grille or a small box. Any low-voltage switch works (3.3 V, < 1 mA). |
 | — | 3 (or 4) | 80 mm (or 60 mm) **5 V** fans, 25 mm thick, sleeve/hydraulic bearing, ≤ 0.25 A | | Pick the lowest-RPM/dBA listing. Budget generic is fine. |
 | — | 1 | USB-C charger (5 V, **≥ 2 A**) + USB-C → micro-USB cable | | Plugs into the Pico's own USB port |
 | — | 1 | Waterproof DS18B20 probe (stainless tube, 1–3 m cable) + 3-pin 2.54 mm housing | | Duct temperature: shown in HA, runs the fans when HA is down |

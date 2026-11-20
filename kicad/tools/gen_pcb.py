@@ -87,6 +87,8 @@ def build(ses=None, pours=True):
         nets[n].SetNetClass(pwr)
 
     for ref, (lib_id, value, fpid, _p, _r, pn, desc) in g.PARTS.items():
+        if not fpid:  # off-board part (the override toggle switch)
+            continue
         fp = load_fp(fpid)
         fp.SetReference(ref); fp.SetValue(value)
         x, y, rot, side = PLACE[ref]
