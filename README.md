@@ -12,7 +12,7 @@ vent-fans/
 ├── wiring.md                  ← schematic in ASCII, connector pinouts, field wiring
 ├── esphome/vent-fans.yaml     ← Pico W firmware (validated with ESPHome 2026.11)
 ├── homeassistant/automation.yaml
-├── frame/frame.scad           ← 3D-printable fan frame for the 4" × 10" opening
+├── frame/                     ← 3D-printable fan frame: frame.scad, make_stl.sh, stl/, README
 ├── sim/                       ← ngspice models, ./run_all.sh, plot.py, results.txt, plots
 └── kicad/                     ← KiCad 7 project: schematic, placed board, custom Pico W part
     └── tools/                 ← generators (gen_schematic.py, gen_pcb.py, check_netlist.py)
@@ -114,10 +114,10 @@ default. The board takes either.
    watch the board's **Control source** sensor in HA change. You can also
    override from your phone with the **Mode** select, and set the override speed
    with **Manual speed** (default 100 %).
-7. **Frame**: open `frame/frame.scad` in OpenSCAD. Set `opening_w`/`opening_h`
-   to the measured hole (not the grille), then export the STL. Print in PETG or
-   ASA. With `split = true` it prints as two halves plus two splice tabs, for
-   beds shorter than ~266 mm.
+7. **Frame**: see [`frame/README.md`](frame/README.md). Measure the opening,
+   then `frame/make_stl.sh <width> <height> <fan> <count>` writes print-ready
+   STLs (one-piece and split) in the right orientation, with print settings for
+   whoever prints it. PETG or ASA, no supports.
 
 ## Routing the board
 

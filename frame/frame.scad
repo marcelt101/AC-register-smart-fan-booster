@@ -30,7 +30,11 @@ lip_t   = 1.6;       // keep thin so the grille still sits flat
 wire_notch = 10;     // notch in one end for the fan leads to reach the PCB
 
 /* [Printing] */
-split = true;        // two halves, for beds smaller than the full length (~266 mm)
+// What to render:
+//   "assembly" = as installed (for checking)
+//   "full"     = one piece, print orientation (needs a bed longer than ~266 mm)
+//   "half_a" / "half_b" / "tabs" = the split version, one STL each
+part = "assembly";
 
 $fn = 64;
 eps = 0.01;
@@ -64,8 +68,9 @@ module plate_2d() {
 }
 
 module frame() {
-    // plate that sits inside the opening, top flush with the floor
-    translate([0, 0, -plate_t]) linear_extrude(plate_t) plate_2d();
+    // plate that sits inside the opening; its top is flush with the top of the
+    // lip, so the whole top face is flat and prints face-down with no supports
+    translate([0, 0, -plate_t]) linear_extrude(plate_t + lip_t) plate_2d();
     // lip on top that rests on the floor; same holes and notch
     linear_extrude(lip_t) difference() {
         rounded_rect(opening_w + 2 * lip_w, opening_h + 2 * lip_w, 4);
@@ -100,20 +105,20 @@ module splice() {
     }
 }
 
-if (split) {
-    big = 1000;
-    // half A (left of the cut)
-    with_splice_holes() intersection() {
-        frame();
-        translate([cut_x - big, -big / 2, -big / 2]) cube(big);
-    }
-    // half B, moved apart for printing
-    translate([20, 0, 0]) with_splice_holes() intersection() {
-        frame();
-        translate([cut_x, -big / 2, -big / 2]) cube(big);
-    }
-    // splice tabs, laid beside the parts
-    translate([0, opening_h + lip_w + 20, plate_t + 3]) splice();
-} else {
-    frame();
+// print orientation: flip so the flat top face (z = lip_t) sits on the bed
+module print_flat() {
+    translate([0, 0, lip_t]) rotate([180, 0, 0]) children();
 }
+
+big = 1000;
+module half_a() { with_splice_holes() intersection() {
+    frame(); translate([cut_x - big, -big / 2, -big / 2]) cube(big); } }
+module half_b() { with_splice_holes() intersection() {
+    frame(); translate([cut_x, -big / 2, -big / 2]) cube(big); } }
+
+if (part == "assembly") frame();
+else if (part == "full")   print_flat() frame();
+else if (part == "half_a") print_flat() half_a();
+else if (part == "half_b") print_flat() half_b();
+else if (part == "tabs")   translate([0, 0, plate_t + 3]) splice();   // flat tabs, as they lie
+else assert(false, str("unknown part: ", part));
