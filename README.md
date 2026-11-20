@@ -54,6 +54,8 @@ between circuits is what matters, not the third digit. To re-run:
 
 ## Bill of materials
 
+Shopping list with what to buy marked: [`BOM.md`](BOM.md) (and [`bom.csv`](bom.csv) for a spreadsheet).
+
 | Ref | Qty | Part | Footprint | Notes |
 |---|---|---|---|---|
 | U1 | 1 | Raspberry Pi Pico W, plus 2× 20-pin female headers | 2×20 THT | Socketed, so it can be swapped or reflashed |
