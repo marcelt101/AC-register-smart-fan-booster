@@ -1,0 +1,11 @@
+* PROPOSED circuit with FOUR worst-case fans (0.25 A each = 1 A at full speed).
+* Shows the board tolerates a 4th fan: inductor peak, diode/FET stress, rail sag.
+.include models.inc
+.param rfan=20
+.param duty=1.0 per=25u lval=100u
+.include harness_buck.inc
+X4     vbus fanm FAN
+.control
+.include measure_buck.inc
+.endc
+.end
