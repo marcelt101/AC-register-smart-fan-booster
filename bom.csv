@@ -13,7 +13,7 @@ YES,Connectors,J1-J4,4,Fan header 3-pin,"2.54 mm KF2510 / Molex KK style, vertic
 YES,Connectors,J5 J6,2,Pin header 1x3,"2.54 mm straight (break from a 40-pin strip)",THT,"J5 = duct probe, J6 = override switch"
 YES,Connectors,—,1 kit,KF2510 / Dupont housings + crimp pins,"3-pin housings for fans, probe and switch cable",—,"Skip for any fan that already has a matching 2.54 mm plug"
 YES,Fans,—,3 (+1 spare),80 mm fan 5 V DC,"80 x 80 x 25 mm, ~1700 rpm, ~25 dB, <= 0.25 A",2- or 3-wire,"Must say DC 5V; 4th fan optional"
-YES,Sensor,—,1,DS18B20 waterproof probe,"Stainless tube, 1-3 m cable",3-wire,"Red 3V3, yellow data, black GND"
+YES,Sensor,—,1,DS18B20 waterproof probe,"DFRobot DFR0198 at Mouser (Adafruit 381 also fits); steel tube on 90 cm cable",3-wire,"Not the bare TO-92 chip. Red 3V3, black GND, yellow/white/green data (check listing)"
 YES,Override,SW1,1,Toggle switch ON-OFF-ON,"SPDT centre-off, e.g. MTS-103",Panel mount,"Off-board: wall plate or small box"
 YES,Override,—,length to suit,3-core cable,"22-26 AWG (alarm / thermostat wire)",—,"Switch to J6"
 YES,Frame,—,1,Wire mesh,"1/4 in (6 mm) openings or smaller; hardware cloth (wall) or expanded metal 1-1.5 mm (floor)",Sheet,"Cut to size from make_stl.sh (264 x 98 mm nominal)"

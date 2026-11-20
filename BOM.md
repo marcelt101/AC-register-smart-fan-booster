@@ -29,7 +29,7 @@ those.
 | 🛒 | — | 1 kit | KF2510 / Dupont 3-pin housings + crimp pins | | For fans, probe and switch cable |
 | **Fans, sensor, switch** ||||||
 | 🛒 | — | 3 (+1) | 80 mm fan, **5 V DC** | 80×80×25 mm, ~1700 rpm, ~25 dB, ≤ 0.25 A | +1 spare or 4th fan |
-| 🛒 | — | 1 | DS18B20 waterproof probe | stainless tube, 1–3 m cable | |
+| 🛒 | — | 1 | DS18B20 **waterproof probe** (chip sealed in a steel tube on a cable) | **DFRobot DFR0198** at Mouser (Adafruit 381 also fits) | Not the bare TO-92 chip. Wires: red 3V3, black GND, yellow/white/green data (check the listing) |
 | 🛒 | SW1 | 1 | Toggle switch ON-OFF-ON (SPDT centre-off) | e.g. MTS-103 | Off-board |
 | 🛒 | — | as needed | 3-core cable, 22–26 AWG | alarm / thermostat wire | Switch to J6 |
 | **Frame** ||||||
