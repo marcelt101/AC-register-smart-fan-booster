@@ -5,7 +5,7 @@ Run with the system Python that has KiCad's pcbnew module:
     /usr/bin/python3 tools/gen_pcb.py            # place + outline + GND pours
     /usr/bin/python3 tools/gen_pcb.py --ses X    # ...and import a Freerouting session
 
-Board: 76 x 50 mm, 2 layers. Pico W across the top with its USB end at the
+Board: 80 x 55 mm, 2 layers. Pico W across the top with its USB end at the
 left edge; power stage underneath; fan headers down the right edge.
 """
 import os, sys
@@ -15,7 +15,7 @@ HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
 import gen_schematic as g
 
 FPDIR = "/usr/share/kicad/footprints"
-OX, OY, W, H = 100.0, 100.0, 76.0, 50.0
+OX, OY, W, H = 100.0, 100.0, 80.0, 55.0
 mm = pcbnew.FromMM
 
 # ref: (x, y, rotation, side)  -- absolute board coordinates in mm
@@ -25,21 +25,21 @@ PLACE = {
     "J2": (158.0, 113.5, 0, "F"),
     "J3": (158.0, 122.5, 0, "F"),
     "J4": (158.0, 131.5, 0, "F"),      # optional 4th fan
-    "J5": (155.5, 140.5, 0, "F"),      # DS18B20 duct probe
-    "R3": (151.5, 142.0, 90, "F"),
-    "J6": (160.5, 140.5, 0, "F"),      # override switch
-    "R4": (165.0, 140.5, 0, "F"),
-    "R5": (165.0, 144.5, 0, "F"),
+    "J5": (154.0, 141.0, 0, "F"),      # DS18B20 duct probe
+    "R3": (149.0, 138.5, 270, "F"),    # axial, 7.62 mm pitch, runs down beside J5
+    "J6": (162.0, 141.0, 0, "F"),      # override switch
+    "R4": (166.0, 138.0, 0, "F"),
+    "R5": (166.0, 144.5, 0, "F"),
     "C1": (109.0, 135.0, 0, "F"),
-    "C2": (140.5, 128.5, 180, "F"),    # hot-loop ceramic, right at Q1/D1
-    "L1": (126.0, 138.5, 0, "F"),
-    "C3": (140.0, 144.0, 0, "F"),
-    "D1": (140.0, 133.0, 180, "F"),
-    "Q1": (147.0, 130.0, 0, "F"),
-    "R1": (151.5, 125.5, 90, "F"),
-    "R2": (147.0, 125.5, 0, "F"),
-    "H1": (104.0, 146.0, 0, "F"),
-    "H2": (172.0, 146.0, 0, "F"),
+    "C2": (132.5, 130.0, 0, "F"),      # 10 uF radial ceramic, hot loop with Q1/D1
+    "L1": (122.0, 141.0, 0, "F"),
+    "C3": (140.0, 146.5, 0, "F"),
+    "D1": (140.0, 134.5, 180, "F"),
+    "Q1": (147.0, 131.0, 0, "F"),
+    "R1": (153.5, 125.5, 270, "F"),    # GP15 -> gate, runs down from the Pico's GP15 corner
+    "R2": (139.0, 127.0, 0, "F"),      # gate pull-down
+    "H1": (104.0, 151.0, 0, "F"),
+    "H2": (176.0, 151.0, 0, "F"),
 }
 # Pico W Wi-Fi antenna: last ~10 mm of the module, between the pin rows.
 ANTENNA_KEEPOUT = (142.0, 105.2, 153.0, 119.8)
@@ -94,6 +94,8 @@ def build(ses=None, pours=True):
         x, y, rot, side = PLACE[ref]
         fp.SetPosition(pcbnew.VECTOR2I(mm(x), mm(y)))
         fp.SetOrientationDegrees(rot)
+        if ref == "Q1":  # label to the right, clear of R2 above it
+            fp.Reference().SetPosition(pcbnew.VECTOR2I(mm(x + 3.2), mm(y)))
         if ref == "U1":  # keep the reference inside the board outline
             fp.Reference().SetPosition(pcbnew.VECTOR2I(mm(104.5), mm(124.5))); fp.Reference().SetTextAngleDegrees(0)
         for pad in fp.Pads():
@@ -108,11 +110,11 @@ def build(ses=None, pours=True):
         segment(board, pcbnew.Edge_Cuts, corners[i], corners[(i + 1) % 4], 0.1)
 
     # silkscreen notes
-    for (x, y, txt, sz) in [(126.0, 148.4, "FAN- is NOT GND", 0.9),
+    for (x, y, txt, sz) in [(122.0, 153.4, "FAN- is NOT GND", 0.9),
                             (110.0, 128.0, "VENT FAN CTRL v1", 0.9),
-                            (170.5, 104.5, "FAN 1", 0.8), (170.5, 113.5, "FAN 2", 0.8),
-                            (170.5, 122.5, "FAN 3", 0.8), (170.5, 131.5, "FAN 4", 0.8),
-                            (146.5, 140.5, "PROBE", 0.8), (163.0, 148.6, "SW: ON-GND-OFF", 0.8)]:
+                            (172.0, 104.5, "FAN 1", 0.8), (172.0, 113.5, "FAN 2", 0.8),
+                            (172.0, 122.5, "FAN 3", 0.8), (172.0, 131.5, "FAN 4", 0.8),
+                            (154.0, 149.6, "PROBE", 0.8), (165.0, 149.6, "SW: ON-GND-OFF", 0.8)]:
         t = pcbnew.PCB_TEXT(board); t.SetText(txt); t.SetLayer(pcbnew.F_SilkS)
         t.SetPosition(pcbnew.VECTOR2I(mm(x), mm(y))); t.SetTextSize(pcbnew.VECTOR2I(mm(sz), mm(sz)))
         t.SetTextThickness(mm(0.15)); board.Add(t)

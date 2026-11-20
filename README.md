@@ -27,7 +27,7 @@ vent-fans/
 | 3 | 25 kHz PWM | 40 kHz | Still inaudible. A 100 µH inductor is enough at this frequency (ripple ≈ 0.15 A). |
 | 4 | Speed jumps instantly | **Soft-start in firmware**: 2 % every 20 ms | Going straight from 0 to 60 % rings the LC filter: **2.1 A** inductor peak. With the slew limiter it's **0.44 A**, so a small 1 A inductor never saturates. See `plot_powerup.png`. |
 | 5 | IRLZ44N / AO3400 | **AO3400A** (SOT-23) only | Simulated Rds(on) ≈ 32 mΩ at the Pico's 3.3 V gate drive. It dissipates ~6 mW, so no heatsink. The IRLZ44N is only specified from 4 V gate drive and is huge. |
-| 6 | Breadboard wiring | **Carrier PCB, 76 × 50 mm**: Pico W socketed, 4 keyed fan headers, override-switch header, DS18B20 duct-probe header | Fewer loose joints in a dusty, warm, vibrating spot. Fans unplug for cleaning. |
+| 6 | Breadboard wiring | **Carrier PCB, 80 × 55 mm**, through-hole resistors and capacitors: Pico W socketed, 4 keyed fan headers, override-switch header, DS18B20 duct-probe header | Fewer loose joints in a dusty, warm, vibrating spot. Fans unplug for cleaning. |
 | 7 | Automation used `delay` + `trigger.to_state` | `for:` on the triggers, re-sync on HA restart and when the board reconnects | The old version could leave fans running after an HA restart. `for:` doesn't drop a pending off when the thermostat chatters. |
 | 8 | ESPHome reboots when HA is down | `reboot_timeout: 0s`, plus an on-board fallback from the duct probe | The fans keep working (or stay safely off) with HA down. |
 | 9 | 3 fans | **Header for a 4th fan**; inductor spec raised to Isat ≥ 1.5 A, diode to SS24 | Four worst-case 0.25 A fans at full speed draw 0.86 A in simulation; the 5 V rail stays ≥ 4.96 V and the FET dissipates 24 mW. |
@@ -60,12 +60,12 @@ between circuits is what matters, not the third digit. To re-run:
 | L1 | 1 | 100 µH shielded power inductor, **Isat ≥ 1.5 A, DCR ≤ 0.3 Ω** | Bourns SRR1260 (12.5 mm) | Sized for 4 fans. Check Isat on the datasheet of whatever you buy. |
 | D1 | 1 | SS24 Schottky, 2 A 40 V (SS14 is fine for 3 fans) | SMA | Stripe (cathode) to +5 V |
 | C1, C3 | 2 | 100 µF 10 V+ low-ESR electrolytic | radial 6.3 mm, 2.5 mm pitch | C1 = input, C3 = across the fans |
-| C2 | 1 | 10 µF 16 V X7R ceramic | 1206 | Close to Q1/D1 |
-| R1 | 1 | 100 Ω | 0805 | gate series resistor |
-| R2 | 1 | 10 kΩ | 0805 | gate pull-down |
+| C2 | 1 | 10 µF 16 V X7R ceramic, radial leads | THT, 5 mm lead spacing | Close to Q1/D1 |
+| R1 | 1 | 100 Ω ¼ W | THT axial, 7.62 mm (0.3") | gate series resistor |
+| R2 | 1 | 10 kΩ ¼ W | THT axial, 7.62 mm | gate pull-down |
 | J1–J4 | 3–4 | 3-pin 2.54 mm fan header (KF2510 / Molex KK style) | `FanPinHeader_1x03` | J4 only for a 4th fan. 2-pin fan plugs fit pins 1–2. |
-| J5, R3 | 1 + 1 | 3-pin header + 4.7 kΩ 0805 | | For the DS18B20 probe (R3 is its pull-up) |
-| J6, R4, R5 | 1 + 2 | 3-pin header + 1 kΩ 0805 ×2 | | Override switch. R4/R5 protect the Pico from the off-board wire. |
+| J5, R3 | 1 + 1 | 3-pin header + 4.7 kΩ ¼ W | THT axial, 7.62 mm | For the DS18B20 probe (R3 is its pull-up) |
+| J6, R4, R5 | 1 + 2 | 3-pin header + 1 kΩ ¼ W ×2 | THT axial, 7.62 mm | Override switch. R4/R5 protect the Pico from the off-board wire. |
 | SW1 | 1 | ON-OFF-ON (centre-off) SPDT toggle, e.g. MTS-103, + 3-core cable + 3-pin 2.54 mm housing | off-board | Drawn on the schematic in the dashed off-board box. Mount on the wall plate, grille or a small box. Any low-voltage switch works (3.3 V, < 1 mA). |
 | — | 3 (or 4) | 80 mm (or 60 mm) **5 V** fans, 25 mm thick, sleeve/hydraulic bearing, ≤ 0.25 A | | Pick the lowest-RPM/dBA listing. Budget generic is fine. |
 | — | 1 | USB-C charger (5 V, **≥ 2 A**) + USB-C → micro-USB cable | | Plugs into the Pico's own USB port |
@@ -84,7 +84,10 @@ default. The board takes either.
 1. **PCB**: open `kicad/vent_fans.kicad_pro` in KiCad 7 or later. The
    schematic is complete and the board is placed with nets assigned. You do the
    routing; see [Routing the board](#routing-the-board).
-2. **Solder** SMD parts first, then the caps, headers and Pico sockets.
+2. **Solder** the three surface-mount parts first: Q1 (SOT-23), D1 (SMA) and
+   L1. They are all large enough for a normal iron. Then fit the through-hole
+   resistors, capacitors, headers and Pico sockets. Bend the resistor leads to
+   7.62 mm (0.3").
    Check the polarity of C1/C3 (+) and D1 (stripe toward the +5V side).
 3. **Firmware**: in the ESPHome add-on on your Proxmox HA, create a new device
    per vent, paste `esphome/vent-fans.yaml`, change `name` / `friendly_name` at
@@ -113,7 +116,7 @@ default. The board takes either.
 
 ## Routing the board
 
-The board in `kicad/vent_fans.kicad_pcb` is 76 × 50 mm and two-layer. It already
+The board in `kicad/vent_fans.kicad_pcb` is 80 × 55 mm and two-layer. It already
 has a GND pour on both layers and a copper keep-out under the Pico W antenna.
 The `Power` net class (0.8 mm tracks) covers +5V, GND, FAN- and SW. Signals
 default to 0.3 mm.
