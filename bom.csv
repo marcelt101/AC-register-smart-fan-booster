@@ -4,7 +4,7 @@ YES,Controller,—,2,Female header 1x20,"2.54 mm pitch, straight",THT,"Socket fo
 YES,Power stage,Q1,1,SI2302CDS-T1-GE3 N-MOSFET (Vishay),"20 V 2.9 A, 57 mOhm @ 4.5 V / 75 mOhm @ 2.5 V gate",SOT-23 (SMD),"Stocked at Mouser; same pinout as AO3400A (also fine if you find one)"
 YES,Power stage,D1,1,SS24 Schottky diode,"2 A 40 V (SS14 OK for 3 fans)",SMA (SMD),"Stripe = cathode, to +5V"
 YES,Power stage,L1,1,Inductor 100 uH shielded,"Isat >= 1.5 A, DCR <= 0.3 ohm, e.g. Bourns SRR1260-101M",12 x 12 mm SMD,"Check Isat on the datasheet"
-YES,Power input,J7,1,USB-C receptacle power-only 6-pin,"GCT USB4125-GF-A or equivalent 6P",SMD pads + THT shell,"Fine tip + flux for the 1 mm-pitch pads"
+YES,Power input,J7,1,USB-C receptacle 16-pin,"GCT USB4105-GF-A (Mouser 640-USB4105-GF-A)",SMD pads + THT shell,"Only VBUS/GND/CC1/CC2 used; data pads unconnected. Check CC2 (B5) is not bridged to VBUS"
 YES,Power input,F1,1,Resettable fuse (PTC),"1.5-2 A hold, e.g. Bourns MF-R160 / MF-RHT200",Radial THT 5.1 mm,
 YES,Power input,D2,1,1N5819 Schottky diode,"1 A 40 V",DO-41 THT,"Feeds the Pico VSYS"
 YES,Power input,—,1,USB-C phone charger,"5 V, >= 2 A",—,"Any USB-C charger"

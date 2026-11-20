@@ -59,7 +59,7 @@ Shopping list with what to buy marked: [`BOM.md`](BOM.md) (and [`bom.csv`](bom.c
 | Ref | Qty | Part | Footprint | Notes |
 |---|---|---|---|---|
 | U1 | 1 | Raspberry Pi Pico W, plus 2× 20-pin female headers | 2×20 THT | Socketed, so it can be swapped or reflashed |
-| J7 | 1 | USB-C receptacle, power-only 6-pin (GCT USB4125-GF-A or equivalent) | `USB_C_Receptacle_GCT_USB4125` | Phone-charger input on the left edge. Shell lugs are through-hole; the 6 signal pads are SMD at 1 mm pitch (fine tip + flux). |
+| J7 | 1 | USB-C receptacle, 16-pin (GCT USB4105-GF-A, Mouser 640-USB4105-GF-A) | `USB_C_Receptacle_GCT_USB4105` | Phone-charger input on the left edge. Shell lugs are through-hole; only VBUS, GND, CC1, CC2 are soldered to anything (data pins unconnected). Fine tip + flux. |
 | R6, R7 | 2 | 5.1 kΩ ¼ W | THT axial, 7.62 mm | CC1/CC2 pull-downs. **Must be 5.1k**: without them a USB-C charger supplies no power. |
 | F1 | 1 | Resettable fuse (PTC), 1.5–2 A hold, radial | 5.1 mm leads (Bourns MF-RHT200 footprint) | Protects the wiring in the wall if something shorts |
 | D2 | 1 | 1N5819 Schottky | THT DO-41 | Feeds the Pico's VSYS from the 5 V rail; stops back-feed into your PC when you flash over the Pico's micro-USB |
@@ -139,8 +139,9 @@ default to 0.3 mm.
    fast-edge loop on the board.
 3. SW (Q1 drain / D1 anode / L1 pin 2) is the noisy node. Keep it short and
    on the top layer, with no long runs.
-4. Power in: J7 VBUS pads (A9 and B9, tie both) → F1 → +5V. Tie both J7 GND
-   pads and the four shell lugs to the GND pour. R6 from CC1 (A5) to GND and R7
+4. Power in: J7's four VBUS pads (A4, A9, B4, B9) → F1 → +5V. Tie the four
+   GND pads (A1, A12, B1, B12) and the four shell lugs to the GND pour. Leave
+   D+, D− and SBU unconnected. R6 from CC1 (A5) to GND and R7
    from CC2 (B5) to GND, kept close to the socket.
 5. +5V: from F1 to C1 and C2, then on to the fan headers' pin 2 and C3+. Use
    0.8 mm or wider. Also +5V → D2 anode, and D2 cathode → Pico pin 39 (VSYS,

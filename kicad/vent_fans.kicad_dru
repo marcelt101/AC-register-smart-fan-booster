@@ -1,0 +1,4 @@
+(version 1)
+(rule "USB-C J7: manufacturer land pattern"
+  (condition "A.Parent == 'J7' && B.Parent == 'J7'")
+  (constraint hole_clearance (min 0.15mm)))

@@ -18,7 +18,7 @@ those.
 | 🛒 | D1 | 1 | SS24 Schottky, 2 A 40 V | SMA (SMD) | SS14 OK for 3 fans. Not a 1N4148 |
 | 🛒 | L1 | 1 | 100 µH shielded inductor, Isat ≥ 1.5 A, DCR ≤ 0.3 Ω | 12 × 12 mm SMD, e.g. Bourns SRR1260-101M | Check Isat on the datasheet |
 | **Power input** ||||||
-| 🛒 | J7 | 1 | USB-C receptacle, power-only 6-pin | GCT USB4125-GF-A or equivalent | Fine tip + flux for the 1 mm pads |
+| 🛒 | J7 | 1 | USB-C receptacle, 16-pin | **GCT USB4105-GF-A** (Mouser 640-USB4105-GF-A) | Only VBUS, GND, CC1, CC2 are used. Fine tip + flux; see note below |
 | 🛒 | F1 | 1 | Resettable fuse (PTC), 1.5–2 A hold | radial, 5.1 mm leads (MF-R160 / MF-RHT200) | |
 | 🛒 | D2 | 1 | 1N5819 Schottky | DO-41 through-hole | |
 | 🛒 | — | 1 | USB-C phone charger | 5 V, **≥ 2 A** | |
@@ -54,6 +54,11 @@ those.
 | R6, R7 | 2 | **5.1 kΩ** | ¼ W axial | USB-C CC pull-downs. **Must be 5.1k**; check your kit has it |
 | C1, C3 | 2 | 100 µF electrolytic | 10 V+, low-ESR, radial 6.3 mm / 2.5 mm | Watch polarity |
 | C2 | 1 | 10 µF **ceramic** | 16 V+, X7R/X5R, radial, 5 mm leads | Check it's ceramic, not electrolytic |
+
+**USB-C socket soldering:** the USB4105's signal pads are 0.3 mm at 0.5 mm
+pitch. Only VBUS, GND, CC1 (A5) and CC2 (B5) are connected. The data pads (D+, D−,
+SBU) are left unconnected, so a solder bridge from CC1/CC2 onto them is harmless.
+Do make sure **CC2 (B5) isn't bridged to the VBUS pad** next to it.
 
 Two to double-check in your stock: **5.1 kΩ** (many kits only have 4.7k and
 5.6k, and USB-C chargers won't turn on without 5.1k) and a **10 µF ceramic** with

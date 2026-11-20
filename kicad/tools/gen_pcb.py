@@ -30,7 +30,7 @@ PLACE = {
     "J6": (162.0, 141.0, 0, "F"),      # override switch
     "R4": (166.0, 138.0, 0, "F"),
     "R5": (166.0, 144.5, 0, "F"),
-    "J7": (103.4, 131.0, 270, "F"),    # USB-C, opening flush with the left edge
+    "J7": (103.675, 131.0, 270, "F"),  # USB-C (GCT USB4105), opening flush with the left edge
     "R6": (110.5, 127.0, 270, "F"),    # CC pull-downs, right behind the socket
     "R7": (113.5, 127.0, 270, "F"),
     "F1": (102.5, 140.5, 0, "F"),      # resettable fuse in the VBUS feed
@@ -103,6 +103,10 @@ def build(ses=None, pours=True):
             fp.Reference().SetPosition(pcbnew.VECTOR2I(mm(x + 3.2), mm(y)))
         if ref == "U1":  # keep the reference inside the board outline
             fp.Reference().SetPosition(pcbnew.VECTOR2I(mm(122.0), mm(124.8))); fp.Reference().SetTextAngleDegrees(-90)
+        if ref == "J7":
+            # USB-C: its tiny SMD GND pads can't take 2 thermal spokes, so connect
+            # them solid; the through-hole shell lugs keep thermal reliefs.
+            fp.SetZoneConnection(pcbnew.ZONE_CONNECTION_THT_THERMAL)
         if ref == "J7":  # above the socket, clear of R6/R7 (label angles are relative to the part)
             fp.Reference().SetPosition(pcbnew.VECTOR2I(mm(103.5), mm(124.4))); fp.Reference().SetTextAngleDegrees(90)
         for pad in fp.Pads():
@@ -151,6 +155,13 @@ def build(ses=None, pours=True):
         z.SetZoneName(f"GND {pcbnew.LayerName(layer)}")
         board.Add(z)
     board.Save(OUT)
+    # GCT's own USB4105 land pattern puts the locating-peg holes 0.19 mm from the
+    # outer GND pads; allow that on J7 only instead of loosening the whole board.
+    open(os.path.join(g.PROJ, f"{g.NAME}.kicad_dru"), "w").write(
+        '(version 1)\n'
+        '(rule "USB-C J7: manufacturer land pattern"\n'
+        '  (condition "A.Parent == \'J7\' && B.Parent == \'J7\'")\n'
+        '  (constraint hole_clearance (min 0.15mm)))\n')
     if pours:  # fill on a freshly loaded board (filling the in-memory one crashes KiCad 7)
         board = pcbnew.LoadBoard(OUT)
         board.BuildConnectivity()
