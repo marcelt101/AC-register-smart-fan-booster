@@ -1,7 +1,8 @@
 # AC register smart fan booster
 
-Three quiet 80 mm 5 V fans (four 60 mm fans also fit) behind each 4" × 10"
-supply register. They run only while the furnace/AC blower runs. Home Assistant
+Three quiet 80 mm 5 V fans (four 60 mm fans also fit) in each 4" × 10"
+supply register. The original grille is replaced by a 3D-printed frame with a
+coarse wire-mesh cover, for maximum airflow. The fans run only while the furnace/AC blower runs. Home Assistant
 watches your HomeKit thermostat and switches them through a Pico W on a small
 carrier PCB, one board per vent. A wall toggle switch gives manual ON / OFF /
 AUTO. One USB-C phone charger powers each board.
@@ -74,6 +75,8 @@ between circuits is what matters, not the third digit. To re-run:
 | — | 3 (or 4) | 80 mm (or 60 mm) **5 V** fans, 25 mm thick, sleeve/hydraulic bearing, ≤ 0.25 A | | Pick the lowest-RPM/dBA listing. Budget generic is fine. |
 | — | 1 | USB-C phone charger (5 V, **≥ 2 A**) + USB-C cable | | Plugs into J7 on the board. Any USB-C charger works; the board asks for plain 5 V. |
 | — | 1 | Waterproof DS18B20 probe (stainless tube, 1–3 m cable) + 3-pin 2.54 mm housing | | Duct temperature: shown in HA, runs the fans when HA is down |
+| — | 1 | Wire mesh, **¼" (6 mm) openings or smaller**: hardware cloth, or expanded metal for a floor vent | | Replaces the grille; cut to the size `frame/make_stl.sh` prints. See [`frame/README.md`](frame/README.md). |
+| — | 8–10 | M3 × 8 countersunk screws (+ 4 × M3 × 10 and nuts for the split frame) | | Hold the printed bezel and mesh down |
 
 Total draw per board: ≈ 0.5 A at full speed with 3 typical fans, up to ~1 A with
 4 worst-case fans.
@@ -114,10 +117,11 @@ default. The board takes either.
    watch the board's **Control source** sensor in HA change. You can also
    override from your phone with the **Mode** select, and set the override speed
    with **Manual speed** (default 100 %).
-7. **Frame**: see [`frame/README.md`](frame/README.md). Measure the opening,
-   then `frame/make_stl.sh <width> <height> <fan> <count>` writes print-ready
-   STLs (one-piece and split) in the right orientation, with print settings for
-   whoever prints it. PETG or ASA, no supports.
+7. **Frame and mesh cover** (replaces the grille): see
+   [`frame/README.md`](frame/README.md). Measure the opening, then
+   `frame/make_stl.sh <width> <height> <fan> <count> <floor|wall>` writes
+   print-ready STLs (base + bezel, one-piece and split), the mesh cut size and
+   the screw count. PETG or ASA, no supports.
 
 ## Routing the board
 
@@ -182,6 +186,8 @@ Note that this overwrites any routing you've done, so only use it before you rou
   furnace, mount the fans at the register end only.
 - Mount fans on foam or rubber grommets, seal the frame with foam
   weatherstrip, and have the fans blow into the room.
+- **The mesh is the finger guard.** Keep its openings at ¼" (6 mm) or smaller,
+  and always screw the bezel down before running the fans.
 - If HA is down, the board runs the fans from the duct probe. If the probe is
   unplugged as well, the fans stay off. A Pico crash or unplugged charger also
   means fans off.

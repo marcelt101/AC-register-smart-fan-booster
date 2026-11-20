@@ -93,7 +93,7 @@ connected, the Pico runs but the fans don't, because the fans only run from J7.
 
 ```
         room                               wall cavity / box
-  ┌──────────────┐ grille
+  ┌──────────────┐ printed frame + wire mesh (replaces the grille)
   │ ▓ fan ▓ fan ▓ fan ▓ │◀── blows into room
   └──────┬───────┘
          │ 3-4 fan leads + probe lead, through a grommet in the boot
