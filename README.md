@@ -22,29 +22,29 @@ vent-fans/
 
 | # | Original spec | v1 | Why (evidence in `sim/`) |
 |---|---|---|---|
-| 1 | 100 µF across the fans, no inductor | Add **one 100 µH inductor** between the fans and the MOSFET. That makes a proper low-side buck converter. | A capacitor across a low-side-switched load gets recharged to 5 V on every PWM pulse, so the fans saw nearly full voltage at any setting: **30 % duty still gave 90 % fan current**. With the inductor the fans get smooth DC ≈ duty × 5 V (30 % → 27 %, 60 % → 55 %, ripple ≈ 80 mV). See `plot_speed_vs_duty.png`. |
+| 1 | 100 µF across the fans, no inductor | Add **one 100 µH inductor** between the fans and the MOSFET. That makes a proper low-side buck converter. | A capacitor across a low-side-switched load gets recharged to 5 V on every PWM pulse, so the fans saw nearly full voltage at any setting: **30 % duty still gave 89 % fan current**. With the inductor the fans get smooth DC ≈ duty × 5 V (30 % → 28 %, 60 % → 56 %, ripple ≈ 80 mV). See `plot_speed_vs_duty.png`. |
 | 2 | Cap only across the fans | 100 µF + 10 µF **on the 5 V rail** (input) as well | Moving caps alone (no inductor) made it worse: every pulse recharged the fans' internal capacitors through the FET with **13–19 A spikes**. The buck version peaks at **0.4 A**. See `plot_waveforms_60pct.png`. |
 | 3 | 25 kHz PWM | 40 kHz | Still inaudible. A 100 µH inductor is enough at this frequency (ripple ≈ 0.15 A). |
 | 4 | Speed jumps instantly | **Soft-start in firmware**: 2 % every 20 ms | Going straight from 0 to 60 % rings the LC filter: **2.1 A** inductor peak. With the slew limiter it's **0.44 A**, so a small 1 A inductor never saturates. See `plot_powerup.png`. |
 | 5 | IRLZ44N / AO3400 | **AO3400A** (SOT-23) only | Simulated Rds(on) ≈ 32 mΩ at the Pico's 3.3 V gate drive. It dissipates ~6 mW, so no heatsink. The IRLZ44N is only specified from 4 V gate drive and is huge. |
-| 6 | Breadboard wiring | **Carrier PCB, 80 × 55 mm**, through-hole resistors and capacitors: Pico W socketed, 4 keyed fan headers, override-switch header, DS18B20 duct-probe header | Fewer loose joints in a dusty, warm, vibrating spot. Fans unplug for cleaning. |
+| 6 | Breadboard wiring | **Carrier PCB, 80 × 60 mm**, through-hole resistors and capacitors, **USB-C power socket**: Pico W socketed, 4 keyed fan headers, override-switch header, DS18B20 duct-probe header | Fewer loose joints in a dusty, warm, vibrating spot. Fans unplug for cleaning. |
 | 7 | Automation used `delay` + `trigger.to_state` | `for:` on the triggers, re-sync on HA restart and when the board reconnects | The old version could leave fans running after an HA restart. `for:` doesn't drop a pending off when the thermostat chatters. |
 | 8 | ESPHome reboots when HA is down | `reboot_timeout: 0s`, plus an on-board fallback from the duct probe | The fans keep working (or stay safely off) with HA down. |
-| 9 | 3 fans | **Header for a 4th fan**; inductor spec raised to Isat ≥ 1.5 A, diode to SS24 | Four worst-case 0.25 A fans at full speed draw 0.86 A in simulation; the 5 V rail stays ≥ 4.96 V and the FET dissipates 24 mW. |
+| 9 | 3 fans | **Header for a 4th fan**; inductor spec raised to Isat ≥ 1.5 A, diode to SS24 | Four worst-case 0.25 A fans at full speed draw 0.84 A in simulation; the 5 V rail stays ≥ 4.87 V and the FET dissipates 23 mW. |
 | 10 | No manual control | **ON-OFF-ON toggle** on J6, plus a **Mode** select (Auto / Force on / Force off) and **Manual speed** in HA | The switch wins over everything. Centre position = AUTO. Works with HA down, since it is read by the Pico. |
 
 What stayed the same: Pico W, 5 V fans, one USB charger, HA in charge, 20 s
 start delay, 30 s run-on, fans **off** if anything is unplugged or the Pico is
 booting (10 k gate pull-down).
 
-### Simulation summary (`sim/results.txt`, 3 × fans, 5.1 V charger + 1 m cable)
+### Simulation summary (`sim/results.txt`, 3 × fans, 5.1 V charger + 1 m cable + the board's fuse)
 
 | Circuit | duty → fan current (% of full) | FET peak (60 %) | 5 V rail min (30 %) |
 |---|---|---|---|
-| Original spec | 30→90, 60→97, 80→99 | 0.78 A | 4.40 V |
-| Caps on rail, no L | 30→76, 60→90, 80→97 | **13.4 A** | 4.52 V |
-| **v1 buck** | **30→27, 60→55, 80→78** | **0.40 A** | 5.05 V |
-| v1 buck, **4 × 0.25 A fans** | 60 % → 2.76 V, 100 % → 4.72 V on the fans | 0.86 A (at 100 %) | 4.96 V (at 100 %) |
+| Original spec | 30→89, 60→97, 80→99 | 0.76 A | 4.30 V |
+| Caps on rail, no L | 30→76, 60→90, 80→97 | **13.3 A** | 4.49 V |
+| **v1 buck** | **30→28, 60→56, 80→78** | **0.39 A** | 5.04 V |
+| v1 buck, **4 × 0.25 A fans** | 60 % → 2.74 V, 100 % → 4.63 V on the fans | 0.84 A (at 100 %) | 4.87 V (at 100 %); Pico VSYS 4.59 V |
 
 The models are approximations: the AO3400A is a VDMOS fit to its datasheet, and
 each fan is modelled as a reverse diode + 1 µF + 33 Ω + 1 mH. The comparison
@@ -56,6 +56,10 @@ between circuits is what matters, not the third digit. To re-run:
 | Ref | Qty | Part | Footprint | Notes |
 |---|---|---|---|---|
 | U1 | 1 | Raspberry Pi Pico W, plus 2× 20-pin female headers | 2×20 THT | Socketed, so it can be swapped or reflashed |
+| J7 | 1 | USB-C receptacle, power-only 6-pin (GCT USB4125-GF-A or equivalent) | `USB_C_Receptacle_GCT_USB4125` | Phone-charger input on the left edge. Shell lugs are through-hole; the 6 signal pads are SMD at 1 mm pitch (fine tip + flux). |
+| R6, R7 | 2 | 5.1 kΩ ¼ W | THT axial, 7.62 mm | CC1/CC2 pull-downs. **Must be 5.1k**: without them a USB-C charger supplies no power. |
+| F1 | 1 | Resettable fuse (PTC), 1.5–2 A hold, radial | 5.1 mm leads (Bourns MF-RHT200 footprint) | Protects the wiring in the wall if something shorts |
+| D2 | 1 | 1N5819 Schottky | THT DO-41 | Feeds the Pico's VSYS from the 5 V rail; stops back-feed into your PC when you flash over the Pico's micro-USB |
 | Q1 | 1 | AO3400A N-MOSFET | SOT-23 | Logic-level, 30 V, 5.7 A |
 | L1 | 1 | 100 µH shielded power inductor, **Isat ≥ 1.5 A, DCR ≤ 0.3 Ω** | Bourns SRR1260 (12.5 mm) | Sized for 4 fans. Check Isat on the datasheet of whatever you buy. |
 | D1 | 1 | SS24 Schottky, 2 A 40 V (SS14 is fine for 3 fans) | SMA | Stripe (cathode) to +5 V |
@@ -68,7 +72,7 @@ between circuits is what matters, not the third digit. To re-run:
 | J6, R4, R5 | 1 + 2 | 3-pin header + 1 kΩ ¼ W ×2 | THT axial, 7.62 mm | Override switch. R4/R5 protect the Pico from the off-board wire. |
 | SW1 | 1 | ON-OFF-ON (centre-off) SPDT toggle, e.g. MTS-103, + 3-core cable + 3-pin 2.54 mm housing | off-board | Drawn on the schematic in the dashed off-board box. Mount on the wall plate, grille or a small box. Any low-voltage switch works (3.3 V, < 1 mA). |
 | — | 3 (or 4) | 80 mm (or 60 mm) **5 V** fans, 25 mm thick, sleeve/hydraulic bearing, ≤ 0.25 A | | Pick the lowest-RPM/dBA listing. Budget generic is fine. |
-| — | 1 | USB-C charger (5 V, **≥ 2 A**) + USB-C → micro-USB cable | | Plugs into the Pico's own USB port |
+| — | 1 | USB-C phone charger (5 V, **≥ 2 A**) + USB-C cable | | Plugs into J7 on the board. Any USB-C charger works; the board asks for plain 5 V. |
 | — | 1 | Waterproof DS18B20 probe (stainless tube, 1–3 m cable) + 3-pin 2.54 mm housing | | Duct temperature: shown in HA, runs the fans when HA is down |
 
 Total draw per board: ≈ 0.5 A at full speed with 3 typical fans, up to ~1 A with
@@ -92,10 +96,11 @@ default. The board takes either.
 3. **Firmware**: in the ESPHome add-on on your Proxmox HA, create a new device
    per vent, paste `esphome/vent-fans.yaml`, change `name` / `friendly_name` at
    the top (e.g. `vent-fans-living`), add the secrets (`esphome/secrets.example.yaml`
-   shows the names), plug the Pico W into your PC by USB and install. After that,
+   shows the names), plug the Pico W's own micro-USB into your PC and install.
+   This is safe with the charger also plugged into J7, thanks to D2. After that,
    updates go over Wi-Fi.
-4. **Bench test** before it goes in the wall. Plug in the charger with the fans
-   attached. In HA, turn on `fan.vent_fans`: the fans should ramp up over about
+4. **Bench test** before it goes in the wall. Plug the charger into the
+   board's USB-C socket (J7) with the fans attached. In HA, turn on `fan.vent_fans`: the fans should ramp up over about
    a second. Measure across a fan connector (pin 2 to pin 1): ≈ 2.7 V at 1 %,
    ≈ 4 V at 60 %, ≈ 4.9 V at 100 %.
 5. **Automation**: in HA, go to Developer Tools → States, filter `climate.`, and
@@ -116,30 +121,34 @@ default. The board takes either.
 
 ## Routing the board
 
-The board in `kicad/vent_fans.kicad_pcb` is 80 × 55 mm and two-layer. It already
+The board in `kicad/vent_fans.kicad_pcb` is 80 × 60 mm and two-layer. It already
 has a GND pour on both layers and a copper keep-out under the Pico W antenna.
-The `Power` net class (0.8 mm tracks) covers +5V, GND, FAN- and SW. Signals
+The `Power` net class (0.8 mm tracks) covers VBUS_IN, +5V, GND, FAN- and SW. Signals
 default to 0.3 mm.
 
-1. Open the PCB and press **B** to refill zones. The ratsnest shows the 26
+1. Open the PCB and press **B** to refill zones. The ratsnest shows the 32
    connections still to route.
 2. Route the **switching loop** first and keep it tiny: C2 → D1 cathode, D1
    anode → Q1 drain, Q1 source → GND via next to C2's GND pad. This is the only
    fast-edge loop on the board.
 3. SW (Q1 drain / D1 anode / L1 pin 2) is the noisy node. Keep it short and
    on the top layer, with no long runs.
-4. +5V: from Pico pin 40 (top-left corner pad) to C1 and C2, then on to the fan
-   headers' pin 2 and C3+. Use 0.8 mm or wider.
-5. FAN-: from L1 pin 1 to C3−, then to pin 1 of J1–J3.
-6. GP15 (bottom-right Pico pad) → R1 → gate. R2 goes from gate to GND.
-7. Duct probe: GP16 → J5 pin 2 → R3 → 3V3 (Pico pin 36).
-8. Override: GP18 (Pico pin 24) → R4 → J6 pin 1 and GP17 (pin 22) → R5 → J6
+4. Power in: J7 VBUS pads (A9 and B9, tie both) → F1 → +5V. Tie both J7 GND
+   pads and the four shell lugs to the GND pour. R6 from CC1 (A5) to GND and R7
+   from CC2 (B5) to GND, kept close to the socket.
+5. +5V: from F1 to C1 and C2, then on to the fan headers' pin 2 and C3+. Use
+   0.8 mm or wider. Also +5V → D2 anode, and D2 cathode → Pico pin 39 (VSYS,
+   top-left, second pad from the USB end). Leave Pico pin 40 (VBUS) unconnected.
+6. FAN-: from L1 pin 1 to C3−, then to pin 1 of J1–J4.
+7. GP15 (bottom-right Pico pad) → R1 → gate. R2 goes from gate to GND.
+8. Duct probe: GP16 → J5 pin 2 → R3 → 3V3 (Pico pin 36).
+9. Override: GP18 (Pico pin 24) → R4 → J6 pin 1 and GP17 (pin 22) → R5 → J6
    pin 3. Both pads are on the top row next to the antenna end. Route them on
    the bottom layer under the Pico, staying outside the keep-out, or along the
    top edge.
-9. Stitch the two GND pours with a few vias, keeping them away from the
+10. Stitch the two GND pours with a few vias, keeping them away from the
    antenna keep-out. Run **Inspect → Design Rules Checker** until it's clean.
-10. **File → Fabrication Outputs → Gerbers + Drill**, zip them and order (any
+11. **File → Fabrication Outputs → Gerbers + Drill**, zip them and order (any
    2-layer, 1.6 mm, HASL service).
 
 `kicad/tools/` regenerates everything from one parts table, if you want to change

@@ -1,7 +1,8 @@
 * USB-C charger + 1 m cable, Pico W load, GPIO15 gate drive.
 Vusb   usb 0 5.1
 Rcab   usb c1 0.15
-Lcab   c1 vbus 1u
+Lcab   c1 c2 1u
+Rptc   c2 vbus 0.1           ; resettable fuse F1 on the board (~0.1 ohm)
 * Pico W: VBUS -> on-board Schottky -> VSYS (10 uF) -> RT6150 buck-boost.
 * VSYS absolute max is 5.5 V. Wi-Fi up draws ~80 mA.
 Dpico  vbus vsys D1N5819

@@ -30,10 +30,13 @@ PICO = {1: "GP0", 2: "GP1", 3: "GND", 4: "GP2", 5: "GP3", 6: "GP4", 7: "GP5",
 PICO_NETS = {n: "GND" for n, nm in PICO.items() if nm in ("GND", "AGND")}
 # GP18 (pin 24) sits above GP17 (pin 22), so GP18 = ON and GP17 = OFF keeps the
 # override wires straight on the schematic.
-PICO_NETS.update({40: "+5V", 36: "+3V3", 20: "FAN_PWM", 21: "ONEWIRE", 24: "OVR_ON", 22: "OVR_OFF"})
+# Power comes from the board's USB-C socket into VSYS through D2 (the Pico
+# datasheet's recommended way); VBUS (pin 40) is left to the Pico's own
+# micro-USB, so the Pico can be plugged into a PC while the charger is in.
+PICO_NETS.update({39: "VSYS", 36: "+3V3", 20: "FAN_PWM", 21: "ONEWIRE", 24: "OVR_ON", 22: "OVR_OFF"})
 
 FAN_X = [132.08, 149.86, 167.64, 185.42]   # fan columns between the +5V and FAN- rails
-RAIL_5V, RAIL_FANM, SW_Y = 55.88, 86.36, 101.6
+RAIL_5V, RAIL_FANM, SW_Y = 48.26, 86.36, 101.6
 
 def _fan(n, opt=""):
     return (f"{NAME}:Fan_Header", f"Fan {n}{opt}", "Connector:FanPinHeader_1x03_P2.54mm_Vertical",
@@ -45,6 +48,23 @@ PARTS = {
     "U1": (f"{NAME}:RaspberryPi_PicoW", "Pico W", f"{NAME}:RaspberryPi_PicoW_THT",
            (63.5, 100.33), 0, PICO_NETS,
            "Raspberry Pi Pico W on 2x20 female headers. Powered by its own micro-USB."),
+    "J7": ("Connector:USB_C_Receptacle_PowerOnly_6P", "USB-C power",
+           "Connector_USB:USB_C_Receptacle_GCT_USB4125-xx-x_6P_TopMnt_Horizontal",
+           (25.4, 55.88), 0, {"A9": "VBUS_IN", "B9": "VBUS_IN", "A12": "GND", "B12": "GND", "S1": "GND",
+                              "A5": "CC1", "B5": "CC2"},
+           "USB-C receptacle, power only (GCT USB4125-GF-A or equivalent 6-pin). Phone charger input, 5 V."),
+    "R6": ("Device:R", "5.1k", "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal",
+           (48.26, 64.77), 0, {1: "CC1", 2: "GND"},
+           "CC1 pull-down: tells a USB-C charger to turn on 5 V. Must be 5.1k."),
+    "R7": ("Device:R", "5.1k", "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal",
+           (43.18, 67.31), 0, {1: "CC2", 2: "GND"},
+           "CC2 pull-down (the plug can go in either way up). Must be 5.1k."),
+    "F1": ("Device:Polyfuse", "PTC 2A hold", "Fuse:Fuse_Bourns_MF-RHT200",
+           (52.07, 48.26), 90, {1: "VBUS_IN", 2: "+5V"},
+           "Resettable fuse, 1.5-2 A hold, radial, 5.1 mm leads (e.g. Bourns MF-RHT200 / MF-R160)."),
+    "D2": ("Device:D_Schottky", "1N5819", "Diode_THT:D_DO-41_SOD81_P10.16mm_Horizontal",
+           (86.36, 62.23), 90, {1: "VSYS", 2: "+5V"},
+           "Feeds the Pico's VSYS from the board 5 V rail; blocks back-feed when the Pico's micro-USB is plugged into a PC."),
     "C1": ("Device:C_Polarized", "100uF", "Capacitor_THT:CP_Radial_D6.3mm_P2.50mm",
            (99.06, 62.23), 0, {1: "+5V", 2: "GND"},
            "Input bulk, 5 V rail. 100 uF 10 V+ low-ESR electrolytic."),
@@ -102,6 +122,10 @@ TEXT = {
     "R5": ((0, 2.54), (0, 5.08), ""),
     "R2": ((-2.54, -1.27), (-2.54, 1.27), " (justify right)"),
     "J6": ((0, -6.35), (0, 6.35), ""),
+    "J7": ((0, -17.78), (0, -15.24), ""),
+    "R7": ((-2.54, -1.27), (-2.54, 1.27), " (justify right)"),
+    "F1": ((0, -2.54), (0, 2.54), ""),
+    "D2": ((2.54, -1.27), (2.54, 1.27), " (justify right)"),  # flipped by the 90 deg rotation
     "SW1": ((0, -6.35), (0, 12.7), ""),
     "Q1": ((5.08, -1.27), (5.08, 1.27), " (justify left)"),
     **{f"J{i}": ((1.27, 8.89), (1.27, 11.43), " (justify left)") for i in (1, 2, 3, 4)},
@@ -380,7 +404,7 @@ def build_schematic():
         for num in pins:
             pt = P(ref, num)
             pins_at.append(pt)
-            if not (num.isdigit() and int(num) in nets):
+            if not ((num.isdigit() and int(num) in nets) or num in nets):
                 items.append(f'  (no_connect (at {pt[0]} {pt[1]}) (uuid {uid()}))')
 
     # ---- Pico W --------------------------------------------------------------
@@ -390,11 +414,21 @@ def build_schematic():
         stub_power("U1", n, "GND", (1, 0))
     stub_power("U1", 36, "+3V3", (1, 0))
 
-    # +5V: VBUS up to the rail that feeds everything in the power stage
-    vbus = P("U1", 40)
-    poly(vbus, (88.9, vbus[1]), (88.9, RAIL_5V))
-    power("+5V", 88.9, RAIL_5V)
-    poly((88.9, RAIL_5V), (P("D1", 1)[0], RAIL_5V))
+    # USB-C input: VBUS -> F1 -> +5V rail; CC1/CC2 -> 5.1k -> GND
+    poly(P("J7", "A9"), P("F1", 1))
+    label("VBUS_IN", 41.91, RAIL_5V)
+    poly(P("F1", 2), (P("D1", 1)[0], RAIL_5V))
+    power("+5V", 63.5, RAIL_5V)
+    power("FLAG", 71.12, RAIL_5V)
+    cc1, cc2 = P("J7", "A5"), P("J7", "B5")
+    poly(cc1, (P("R6", 1)[0], cc1[1]), P("R6", 1))
+    poly(cc2, (P("R7", 1)[0], cc2[1]), P("R7", 1))
+    power("GND", *P("R6", 2)); power("GND", *P("R7", 2))
+    power("GND", *P("J7", "A12")); power("GND", *P("J7", "S1"))
+    # +5V rail -> D2 -> Pico VSYS
+    poly((P("D2", 2)[0], RAIL_5V), P("D2", 2))
+    vsys = P("U1", 39)
+    poly(P("D2", 1), (P("D2", 1)[0], vsys[1]), vsys)
     label("+5V", 125.73, RAIL_5V)
 
     # input caps
@@ -504,9 +538,9 @@ def build_schematic():
 
     # ---- notes ---------------------------------------------------------------
     text(25.4, 25.4, "AC register fan booster - Pico W + low-side buck: the fans get smooth DC = duty x 5 V", 2)
-    text(129.54, 40.64, "POWER STAGE: Q1 switches at 40 kHz, L1 + C3 filter it to DC across the fans.")
-    text(129.54, 45.72, "FAN- is NOT ground. Never tie a fan's black wire to GND or to the metal duct.")
-    text(129.54, 50.8, "3 fans fitted; J4 is optional (4 x 0.25 A fans = 1 A max).", 1.27)
+    text(129.54, 33.02, "POWER STAGE: Q1 switches at 40 kHz, L1 + C3 filter it to DC across the fans.")
+    text(129.54, 38.1, "FAN- is NOT ground. Never tie a fan's black wire to GND or to the metal duct.")
+    text(129.54, 43.18, "3 fans fitted; J4 is optional (4 x 0.25 A fans = 1 A max).", 1.27)
     text(88.9, 157.48, "DS18B20 duct probe: HA sensor + fallback when HA is down", 1.27)
 
     libs = "\n".join("    " + dump(s, 2) for s in used.values())
@@ -539,7 +573,7 @@ def write_project_files():
            "net_settings": {"classes": [
                {"name": "Default", "clearance": 0.2, "track_width": 0.3, "via_diameter": 0.8, "via_drill": 0.4},
                {"name": "Power", "clearance": 0.25, "track_width": 0.8, "via_diameter": 1.0, "via_drill": 0.5}],
-               "netclass_patterns": [{"netclass": "Power", "pattern": n} for n in ("+5V", "GND", "FAN-", "SW")],
+               "netclass_patterns": [{"netclass": "Power", "pattern": n} for n in ("VBUS_IN", "+5V", "GND", "FAN-", "SW")],
                "meta": {"version": 3}},
            "sheets": [], "boards": [], "text_variables": {}}
     path = os.path.join(PROJ, f"{NAME}.kicad_pro")

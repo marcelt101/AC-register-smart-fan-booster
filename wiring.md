@@ -3,9 +3,13 @@
 ## Circuit (what's on the PCB)
 
 ```
- USB-C charger ══ USB-C→micro-USB cable ══▶ Pico W micro-USB port
+ USB-C charger ══ USB-C cable ══▶ J7 (USB-C socket on the board)
 
- +5V  (Pico pin 40 VBUS) ──┬──────────┬───────────────────┬───────────────┬────────────┐
+ J7 VBUS ──[F1 PTC]── +5V            J7 CC1 ──[R6 5.1k]── GND
+                                     J7 CC2 ──[R7 5.1k]── GND   (makes the charger turn on 5 V)
+ +5V ──▶|── D2 1N5819 ── Pico pin 39 VSYS     (Pico pin 40 VBUS: not connected)
+
+ +5V rail ─────────────────┬──────────┬───────────────────┬───────────────┬────────────┐
                            │          │                   │               │            │
                        C1 100µF+  C2 10µF        fan red (J1–J4 pin 2)  C3 100µF+   D1 SS24
                            │          │         3-4 fans in parallel      │       (stripe/cathode
@@ -74,11 +78,16 @@ lever. If ON and OFF come out backwards, swap the wires on pins 1 and 3. It's
 to several metres is fine. Positions: up = force on, middle = AUTO (HA
 decides), down = force off.
 
-**Power**: only the Pico's own micro-USB port. Use a charger of 5 V, ≥ 2 A.
-Fan current flows through the Pico's VBUS pin: about 0.5 A with 3 fans and
-up to about 1 A with 4. That is within what the micro-USB connector carries.
-Don't also power the board from your PC while the charger is plugged in. For
-flashing, unplug the charger and use the PC.
+**Power, J7 (USB-C)**: plug any USB-C phone charger (5 V, ≥ 2 A) into the
+board's USB-C socket. R6/R7 (5.1 kΩ on CC1/CC2) are what make a USB-C charger
+switch its 5 V on; without them you get 0 V. The board draws about 0.5 A with 3
+fans and up to about 1 A with 4. F1 is a resettable fuse: if it trips, unplug
+for a minute and it resets.
+
+The Pico is fed through D2 into VSYS, and its own micro-USB port is left free.
+To flash it, plug the micro-USB into your PC. The charger can stay plugged in:
+D2 and the Pico's own diode keep the two supplies apart. With only the PC
+connected, the Pico runs but the fans don't, because the fans only run from J7.
 
 ## In the wall
 
@@ -90,7 +99,7 @@ flashing, unplug the charger and use the PC.
          │ 3-4 fan leads + probe lead, through a grommet in the boot
          ▼
    ┌──────────────┐        USB-C charger in a nearby outlet
-   │ carrier PCB  │◀═══════ USB cable
+   │ carrier PCB  │◀═══════ USB-C cable into J7
    │  + Pico W    │────── 3-core cable ──▶ ON/AUTO/OFF toggle (wall plate or box)
    └──────────────┘   keep the Pico W antenna end (opposite the USB) away
                       from the metal duct for good Wi-Fi

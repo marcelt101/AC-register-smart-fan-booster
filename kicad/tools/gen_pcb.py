@@ -5,7 +5,7 @@ Run with the system Python that has KiCad's pcbnew module:
     /usr/bin/python3 tools/gen_pcb.py            # place + outline + GND pours
     /usr/bin/python3 tools/gen_pcb.py --ses X    # ...and import a Freerouting session
 
-Board: 80 x 55 mm, 2 layers. Pico W across the top with its USB end at the
+Board: 80 x 60 mm, 2 layers. Pico W across the top with its USB end at the
 left edge; power stage underneath; fan headers down the right edge.
 """
 import os, sys
@@ -15,7 +15,7 @@ HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
 import gen_schematic as g
 
 FPDIR = "/usr/share/kicad/footprints"
-OX, OY, W, H = 100.0, 100.0, 80.0, 55.0
+OX, OY, W, H = 100.0, 100.0, 80.0, 60.0
 mm = pcbnew.FromMM
 
 # ref: (x, y, rotation, side)  -- absolute board coordinates in mm
@@ -30,16 +30,21 @@ PLACE = {
     "J6": (162.0, 141.0, 0, "F"),      # override switch
     "R4": (166.0, 138.0, 0, "F"),
     "R5": (166.0, 144.5, 0, "F"),
-    "C1": (109.0, 135.0, 0, "F"),
+    "J7": (103.4, 131.0, 270, "F"),    # USB-C, opening flush with the left edge
+    "R6": (110.5, 127.0, 270, "F"),    # CC pull-downs, right behind the socket
+    "R7": (113.5, 127.0, 270, "F"),
+    "F1": (102.5, 140.5, 0, "F"),      # resettable fuse in the VBUS feed
+    "D2": (103.0, 148.0, 0, "F"),      # +5V -> Pico VSYS (axial, 10.16 mm)
+    "C1": (118.5, 130.0, 0, "F"),      # input bulk cap, between USB-C and the power stage
     "C2": (132.5, 130.0, 0, "F"),      # 10 uF radial ceramic, hot loop with Q1/D1
-    "L1": (122.0, 141.0, 0, "F"),
+    "L1": (126.0, 141.5, 0, "F"),
     "C3": (140.0, 146.5, 0, "F"),
     "D1": (140.0, 134.5, 180, "F"),
     "Q1": (147.0, 131.0, 0, "F"),
     "R1": (153.5, 125.5, 270, "F"),    # GP15 -> gate, runs down from the Pico's GP15 corner
     "R2": (139.0, 127.0, 0, "F"),      # gate pull-down
-    "H1": (104.0, 151.0, 0, "F"),
-    "H2": (176.0, 151.0, 0, "F"),
+    "H1": (104.0, 155.5, 0, "F"),
+    "H2": (176.0, 155.5, 0, "F"),
 }
 # Pico W Wi-Fi antenna: last ~10 mm of the module, between the pin rows.
 ANTENNA_KEEPOUT = (142.0, 105.2, 153.0, 119.8)
@@ -83,7 +88,7 @@ def build(ses=None, pours=True):
         for n in pn.values():
             if n not in nets:
                 ni = pcbnew.NETINFO_ITEM(board, n); board.Add(ni); nets[n] = ni
-    for n in ("+5V", "GND", "FAN-", "SW"):
+    for n in ("VBUS_IN", "+5V", "GND", "FAN-", "SW"):
         nets[n].SetNetClass(pwr)
 
     for ref, (lib_id, value, fpid, _p, _r, pn, desc) in g.PARTS.items():
@@ -97,11 +102,14 @@ def build(ses=None, pours=True):
         if ref == "Q1":  # label to the right, clear of R2 above it
             fp.Reference().SetPosition(pcbnew.VECTOR2I(mm(x + 3.2), mm(y)))
         if ref == "U1":  # keep the reference inside the board outline
-            fp.Reference().SetPosition(pcbnew.VECTOR2I(mm(104.5), mm(124.5))); fp.Reference().SetTextAngleDegrees(0)
+            fp.Reference().SetPosition(pcbnew.VECTOR2I(mm(122.0), mm(124.8))); fp.Reference().SetTextAngleDegrees(-90)
+        if ref == "J7":  # above the socket, clear of R6/R7 (label angles are relative to the part)
+            fp.Reference().SetPosition(pcbnew.VECTOR2I(mm(103.5), mm(124.4))); fp.Reference().SetTextAngleDegrees(90)
         for pad in fp.Pads():
             num = pad.GetNumber()
-            if num.isdigit() and int(num) in pn:
-                pad.SetNet(nets[pn[int(num)]])
+            key = int(num) if num.isdigit() else num   # USB-C pads are A5, B9, S1, ...
+            if key in pn:
+                pad.SetNet(nets[pn[key]])
         board.Add(fp)
 
     # outline (rounded corners would be nicer; plain rectangle keeps it simple)
@@ -110,8 +118,8 @@ def build(ses=None, pours=True):
         segment(board, pcbnew.Edge_Cuts, corners[i], corners[(i + 1) % 4], 0.1)
 
     # silkscreen notes
-    for (x, y, txt, sz) in [(122.0, 153.4, "FAN- is NOT GND", 0.9),
-                            (110.0, 128.0, "VENT FAN CTRL v1", 0.9),
+    for (x, y, txt, sz) in [(124.0, 157.6, "FAN- is NOT GND", 0.9),
+                            (146.0, 157.6, "VENT FAN CTRL v1.2", 0.9),
                             (172.0, 104.5, "FAN 1", 0.8), (172.0, 113.5, "FAN 2", 0.8),
                             (172.0, 122.5, "FAN 3", 0.8), (172.0, 131.5, "FAN 4", 0.8),
                             (154.0, 149.6, "PROBE", 0.8), (165.0, 149.6, "SW: ON-GND-OFF", 0.8)]:
