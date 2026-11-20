@@ -23,8 +23,8 @@
                              [R2 10k]                                      │
                                 GND                                       GND
 
- Optional duct probe:  3V3 (Pico pin 36) ──[R3 4.7k]──┬── GP16 (Pico pin 21)
-                                                      └── J5 pin 2 (DQ);  J5 pin 3 = 3V3,  J5 pin 1 = GND
+ Duct probe (DS18B20):  3V3 (Pico pin 36) ──[R3 4.7k]──┬── GP16 (Pico pin 21)
+                                                       └── J5 pin 2 (DQ);  J5 pin 3 = 3V3,  J5 pin 1 = GND
 
  Override switch:  GP18 (Pico pin 24) ──[R4 1k]── J6 pin 1 ── switch "ON" lug
                                                   J6 pin 2 ── switch centre (common) lug ── GND
@@ -52,7 +52,10 @@ is a buck converter with the switch on the low side.
   KF2510/Dupont housing, or cut and solder an extension.
 - **FAN- is not ground**: don't connect it to the duct, the Pico or GND.
 
-**J5, DS18B20 probe (optional)**: 1 = GND (black), 2 = DQ (yellow), 3 = 3V3 (red).
+**J5, DS18B20 duct probe**: 1 = GND (black), 2 = DQ (yellow), 3 = 3V3 (red).
+Crimp a 3-pin 2.54 mm (Dupont/KF2510) housing on the probe's leads. Some probes
+use other colours: on those, the odd-coloured wire is usually data. The cable can
+be extended to several metres with any 3-core wire.
 
 **J6, override switch**: use an ON-OFF-ON (centre-off) SPDT toggle.
 
@@ -84,7 +87,7 @@ flashing, unplug the charger and use the PC.
   ┌──────────────┐ grille
   │ ▓ fan ▓ fan ▓ fan ▓ │◀── blows into room
   └──────┬───────┘
-         │ 3-4 fan leads (+ probe lead, optional), through a grommet in the boot
+         │ 3-4 fan leads + probe lead, through a grommet in the boot
          ▼
    ┌──────────────┐        USB-C charger in a nearby outlet
    │ carrier PCB  │◀═══════ USB cable

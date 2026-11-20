@@ -27,9 +27,9 @@ vent-fans/
 | 3 | 25 kHz PWM | 40 kHz | Still inaudible. A 100 µH inductor is enough at this frequency (ripple ≈ 0.15 A). |
 | 4 | Speed jumps instantly | **Soft-start in firmware**: 2 % every 20 ms | Going straight from 0 to 60 % rings the LC filter: **2.1 A** inductor peak. With the slew limiter it's **0.44 A**, so a small 1 A inductor never saturates. See `plot_powerup.png`. |
 | 5 | IRLZ44N / AO3400 | **AO3400A** (SOT-23) only | Simulated Rds(on) ≈ 32 mΩ at the Pico's 3.3 V gate drive. It dissipates ~6 mW, so no heatsink. The IRLZ44N is only specified from 4 V gate drive and is huge. |
-| 6 | Breadboard wiring | **Carrier PCB, 76 × 50 mm**: Pico W socketed, 4 keyed fan headers, override-switch header, optional DS18B20 header | Fewer loose joints in a dusty, warm, vibrating spot. Fans unplug for cleaning. |
+| 6 | Breadboard wiring | **Carrier PCB, 76 × 50 mm**: Pico W socketed, 4 keyed fan headers, override-switch header, DS18B20 duct-probe header | Fewer loose joints in a dusty, warm, vibrating spot. Fans unplug for cleaning. |
 | 7 | Automation used `delay` + `trigger.to_state` | `for:` on the triggers, re-sync on HA restart and when the board reconnects | The old version could leave fans running after an HA restart. `for:` doesn't drop a pending off when the thermostat chatters. |
-| 8 | ESPHome reboots when HA is down | `reboot_timeout: 0s`, plus optional on-board fallback from a duct probe | The fans keep working (or stay safely off) with HA down. |
+| 8 | ESPHome reboots when HA is down | `reboot_timeout: 0s`, plus an on-board fallback from the duct probe | The fans keep working (or stay safely off) with HA down. |
 | 9 | 3 fans | **Header for a 4th fan**; inductor spec raised to Isat ≥ 1.5 A, diode to SS24 | Four worst-case 0.25 A fans at full speed draw 0.86 A in simulation; the 5 V rail stays ≥ 4.96 V and the FET dissipates 24 mW. |
 | 10 | No manual control | **ON-OFF-ON toggle** on J6, plus a **Mode** select (Auto / Force on / Force off) and **Manual speed** in HA | The switch wins over everything. Centre position = AUTO. Works with HA down, since it is read by the Pico. |
 
@@ -64,12 +64,12 @@ between circuits is what matters, not the third digit. To re-run:
 | R1 | 1 | 100 Ω | 0805 | gate series resistor |
 | R2 | 1 | 10 kΩ | 0805 | gate pull-down |
 | J1–J4 | 3–4 | 3-pin 2.54 mm fan header (KF2510 / Molex KK style) | `FanPinHeader_1x03` | J4 only for a 4th fan. 2-pin fan plugs fit pins 1–2. |
-| J5, R3 | 1 + 1 | 3-pin header + 4.7 kΩ 0805 | | **Optional**, only with the DS18B20 probe |
+| J5, R3 | 1 + 1 | 3-pin header + 4.7 kΩ 0805 | | For the DS18B20 probe (R3 is its pull-up) |
 | J6, R4, R5 | 1 + 2 | 3-pin header + 1 kΩ 0805 ×2 | | Override switch. R4/R5 protect the Pico from the off-board wire. |
 | SW | 1 | ON-OFF-ON (centre-off) SPDT toggle, e.g. MTS-103, + 3-wire cable | | Mount on the wall plate, grille or a small box. Any low-voltage switch works (3.3 V, < 1 mA). |
 | — | 3 (or 4) | 80 mm (or 60 mm) **5 V** fans, 25 mm thick, sleeve/hydraulic bearing, ≤ 0.25 A | | Pick the lowest-RPM/dBA listing. Budget generic is fine. |
 | — | 1 | USB-C charger (5 V, **≥ 2 A**) + USB-C → micro-USB cable | | Plugs into the Pico's own USB port |
-| — | 1 | Waterproof DS18B20 probe | | Optional |
+| — | 1 | Waterproof DS18B20 probe (stainless tube, 1–3 m cable) + 3-pin 2.54 mm housing | | Duct temperature: shown in HA, runs the fans when HA is down |
 
 Total draw per board: ≈ 0.5 A at full speed with 3 typical fans, up to ~1 A with
 4 worst-case fans.
@@ -129,7 +129,7 @@ default to 0.3 mm.
    headers' pin 2 and C3+. Use 0.8 mm or wider.
 5. FAN-: from L1 pin 1 to C3−, then to pin 1 of J1–J3.
 6. GP15 (bottom-right Pico pad) → R1 → gate. R2 goes from gate to GND.
-7. Optional: GP16 → J5 pin 2 → R3 → 3V3 (Pico pin 36).
+7. Duct probe: GP16 → J5 pin 2 → R3 → 3V3 (Pico pin 36).
 8. Override: GP18 (Pico pin 24) → R4 → J6 pin 1 and GP17 (pin 22) → R5 → J6
    pin 3. Both pads are on the top row next to the antenna end. Route them on
    the bottom layer under the Pico, staying outside the keep-out, or along the
@@ -152,8 +152,12 @@ Note that this overwrites any routing you've done, so only use it before you rou
   `vent-fans.yaml`.
 - **Delays**: the `for:` values in the automation (20 s on, 30 s run-on).
 - **Your thermostat only shows `idle`/`heating`** (no `cooling`, or the
-  attribute is missing): use the DS18B20 option. Its on-board fallback logic is
-  in the YAML, or you can make the HA automation trigger on `sensor.duct_temperature`.
+  attribute is missing): make the HA automation trigger on the board's
+  **Duct temperature** sensor instead (same thresholds as the fallback).
+- **Duct-probe fallback thresholds**: `duct_hot`, `duct_cold`, `duct_idle_low`
+  and `duct_idle_high` at the top of `vent-fans.yaml`. Watch **Duct
+  temperature** in HA for a day of heating or cooling, then set them between
+  what you see with the blower running and with it off.
 
 ## Safety and install notes
 
@@ -166,8 +170,12 @@ Note that this overwrites any routing you've done, so only use it before you rou
   furnace, mount the fans at the register end only.
 - Mount fans on foam or rubber grommets, seal the frame with foam
   weatherstrip, and have the fans blow into the room.
-- If Wi-Fi or HA is down, the fans stay off (or run from the duct probe if it's
-  fitted). A Pico crash or unplugged charger also means fans off.
+- If HA is down, the board runs the fans from the duct probe. If the probe is
+  unplugged as well, the fans stay off. A Pico crash or unplugged charger also
+  means fans off.
+- **Duct probe**: drill a 6–7 mm hole in the side of the boot or duct, a few
+  inches upstream of the fans. Push the probe tip into the airstream and seal
+  the hole with foil HVAC tape. Keep it out of direct contact with the metal.
 
 ## Why Wi-Fi and not Zigbee
 

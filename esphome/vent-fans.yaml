@@ -9,14 +9,19 @@
 #   1. ON-OFF-ON toggle on J6: up = force on, down = force off, centre = AUTO
 #   2. "Mode" select in Home Assistant: Auto / Force on / Force off
 #   3. AUTO: the fan entity, driven by the HA automation
-# The optional DS18B20 duct probe on J5 lets the board run the fans by itself
-# whenever Home Assistant is unreachable.
+# The DS18B20 duct probe on J5 reports the duct air temperature to HA and lets
+# the board run the fans by itself whenever Home Assistant is unreachable.
 #
 # One board per vent: copy this file per vent and change the two substitutions.
 
 substitutions:
   name: vent-fans               # e.g. vent-fans-living -> entity fan.vent_fans_living
   friendly_name: Vent Fans
+  # Duct-probe fallback (used only while HA is unreachable), in deg C
+  duct_hot: "32.0"              # >= 90 F: furnace is heating -> fans on
+  duct_cold: "16.0"             # <= 61 F: AC is cooling      -> fans on
+  duct_idle_low: "18.0"         # between 64 F and 81 F: blower off -> fans off
+  duct_idle_high: "27.0"
 
 esphome:
   name: ${name}
@@ -148,6 +153,31 @@ interval:
             id(pwm_hw).set_level(a);
           }
 
+  # Duct-probe fallback: only acts while Home Assistant is NOT connected. Duct
+  # air is hot while heating and cold while cooling; near room temperature means
+  # the blower is off. The gap between the on and off thresholds stops it
+  # flapping. When HA comes back, the automation re-syncs the fans.
+  - interval: 30s
+    then:
+      - if:
+          condition:
+            not:
+              api.connected:
+          then:
+            - if:
+                condition:
+                  lambda: 'float t = id(duct_temp).state; return !std::isnan(t) && (t >= ${duct_hot} || t <= ${duct_cold});'
+                then:
+                  - fan.turn_on:
+                      id: vent_fans
+                      speed: 60
+                else:
+                  - if:
+                      condition:
+                        lambda: 'float t = id(duct_temp).state; return std::isnan(t) || (t > ${duct_idle_low} && t < ${duct_idle_high});'
+                      then:
+                        - fan.turn_off: vent_fans
+
 fan:
   - platform: speed
     id: vent_fans
@@ -155,42 +185,19 @@ fan:
     name: None              # entity becomes fan.<name>, e.g. fan.vent_fans
     restore_mode: ALWAYS_OFF
 
-# --- Optional: DS18B20 duct probe on J5 (standalone fallback) --------------
-# Uncomment this block if you fit J5 + R3 and a waterproof DS18B20 probe.
-# Push the probe through the duct wall a few inches upstream of the fans.
-#
-# one_wire:
-#   - platform: gpio
-#     pin: GPIO16           # J5
-#
-# sensor:
-#   - platform: dallas_temp
-#     id: duct_temp
-#     name: Duct temperature
-#     update_interval: 15s
-#
-# # Add this entry to the EXISTING interval: list above (YAML allows only one
-# # interval: key). Only acts while Home Assistant is NOT connected. Duct air is hot (>90 F)
-# # while heating and cold (<61 F) while cooling; anything near room temperature
-# # means the blower is off. The gap between the on and off thresholds keeps it
-# # from flapping on and off.
-#   - interval: 30s
-#     then:
-#       - if:
-#           condition:
-#             not:
-#               api.connected:
-#           then:
-#             - if:
-#                 condition:
-#                   lambda: 'float t = id(duct_temp).state; return !isnan(t) && (t >= 32.0 || t <= 16.0);'
-#                 then:
-#                   - fan.turn_on:
-#                       id: vent_fans
-#                       speed: 60
-#                 else:
-#                   - if:
-#                       condition:
-#                         lambda: 'float t = id(duct_temp).state; return isnan(t) || (t > 18.0 && t < 27.0);'
-#                       then:
-#                         - fan.turn_off: vent_fans
+# --- DS18B20 duct probe on J5 ----------------------------------------------
+# Waterproof probe pushed through the duct wall a few inches upstream of the
+# fans. Red = 3V3 (J5 pin 3), yellow = data (pin 2), black = GND (pin 1).
+# If the probe is unplugged the sensor reads unavailable and the fallback
+# simply keeps the fans off; nothing else depends on it.
+one_wire:
+  - platform: gpio
+    pin: GPIO16
+
+sensor:
+  - platform: dallas_temp
+    id: duct_temp
+    name: Duct temperature
+    update_interval: 15s
+    filters:
+      - filter_out: 85.0     # DS18B20 power-on value, not a real reading

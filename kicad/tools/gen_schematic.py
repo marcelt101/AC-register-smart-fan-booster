@@ -79,11 +79,11 @@ PARTS = {
            "ON-OFF-ON toggle: 1 = ON lug, 2 = common (centre lug), 3 = OFF lug. Centre position = AUTO."),
     "R3": ("Device:R", "4.7k", "Resistor_SMD:R_0805_2012Metric",
            (101.6, 143.51), 0, {1: "+3V3", 2: "ONEWIRE"},
-           "1-Wire pull-up (only needed with the DS18B20)."),
-    "J5": ("Connector_Generic:Conn_01x03", "DS18B20 opt.",
+           "1-Wire pull-up for the DS18B20 duct probe."),
+    "J5": ("Connector_Generic:Conn_01x03", "DS18B20 probe",
            "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical",
            (134.62, 147.32), 0, {1: "GND", 2: "ONEWIRE", 3: "+3V3"},
-           "Optional duct probe: 1 = GND (black), 2 = DQ (yellow), 3 = 3V3 (red)."),
+           "Duct temperature probe: 1 = GND (black), 2 = DQ (yellow), 3 = 3V3 (red)."),
     "H1": ("Mechanical:MountingHole", "M3", "MountingHole:MountingHole_3.2mm_M3",
            (25.4, 182.88), 0, {}, "Mounting hole."),
     "H2": ("Mechanical:MountingHole", "M3", "MountingHole:MountingHole_3.2mm_M3",
@@ -483,7 +483,7 @@ def build_schematic():
     text(129.54, 45.72, "FAN- is NOT ground. Never tie a fan's black wire to GND or to the metal duct.")
     text(129.54, 50.8, "3 fans fitted; J4 is optional (4 x 0.25 A fans = 1 A max).", 1.27)
     text(101.6, 109.22, "Override: ON-OFF-ON toggle. Centre = AUTO", 1.27)
-    text(88.9, 157.48, "Optional DS18B20 duct probe (J5, R3)", 1.27)
+    text(88.9, 157.48, "DS18B20 duct probe: HA sensor + fallback when HA is down", 1.27)
 
     libs = "\n".join("    " + dump(s, 2) for s in used.values())
     sch = f'''(kicad_sch (version 20230121) (generator eeschema)
