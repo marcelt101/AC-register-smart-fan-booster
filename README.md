@@ -130,7 +130,7 @@ default to 0.3 mm.
 5. FAN-: from L1 pin 1 to C3−, then to pin 1 of J1–J3.
 6. GP15 (bottom-right Pico pad) → R1 → gate. R2 goes from gate to GND.
 7. Optional: GP16 → J5 pin 2 → R3 → 3V3 (Pico pin 36).
-8. Override: GP17 (Pico pin 22) → R4 → J6 pin 1 and GP18 (pin 24) → R5 → J6
+8. Override: GP18 (Pico pin 24) → R4 → J6 pin 1 and GP17 (pin 22) → R5 → J6
    pin 3. Both pads are on the top row next to the antenna end. Route them on
    the bottom layer under the Pico, staying outside the keep-out, or along the
    top edge.

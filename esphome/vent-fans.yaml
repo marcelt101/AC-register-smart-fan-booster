@@ -67,13 +67,13 @@ output:
       - lambda: id(target_level) = state;
 
 # --- Manual override -------------------------------------------------------
-# J6: switch common to pin 2 (GND), ON lug to pin 1 (GP17), OFF lug to pin 3 (GP18).
+# J6: switch common to pin 2 (GND), ON lug to pin 1 (GP18), OFF lug to pin 3 (GP17).
 binary_sensor:
   - platform: gpio
     id: sw_force_on
     name: Override switch on
     pin:
-      number: GPIO17
+      number: GPIO18
       mode: {input: true, pullup: true}
       inverted: true
     filters:
@@ -82,7 +82,7 @@ binary_sensor:
     id: sw_force_off
     name: Override switch off
     pin:
-      number: GPIO18
+      number: GPIO17
       mode: {input: true, pullup: true}
       inverted: true
     filters:

@@ -26,9 +26,9 @@
  Optional duct probe:  3V3 (Pico pin 36) ──[R3 4.7k]──┬── GP16 (Pico pin 21)
                                                       └── J5 pin 2 (DQ);  J5 pin 3 = 3V3,  J5 pin 1 = GND
 
- Override switch:  GP17 (Pico pin 22) ──[R4 1k]── J6 pin 1 ── switch "ON" lug
+ Override switch:  GP18 (Pico pin 24) ──[R4 1k]── J6 pin 1 ── switch "ON" lug
                                                   J6 pin 2 ── switch centre (common) lug ── GND
-                   GP18 (Pico pin 24) ──[R5 1k]── J6 pin 3 ── switch "OFF" lug
+                   GP17 (Pico pin 22) ──[R5 1k]── J6 pin 3 ── switch "OFF" lug
                    (internal pull-ups; centre position = neither pin grounded = AUTO)
 ```
 

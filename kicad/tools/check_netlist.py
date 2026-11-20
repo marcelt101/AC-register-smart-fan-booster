@@ -15,11 +15,16 @@ for ref, (lib, val, fp, pos, rot, pn, desc) in g.PARTS.items():
     for p, n in pn.items():
         want.setdefault(n, set()).add((ref, str(p)))
 bad = 0
+# compare connectivity, not names: unlabelled wires get auto names in KiCad
+by_node = {node: name for name, nodes in nets.items() for node in nodes}
 for n, nodes in sorted(want.items()):
-    if nets.get(n) != nodes:
-        bad += 1; print(f"MISMATCH {n}: want {sorted(nodes)} got {sorted(nets.get(n, []))}")
+    got_names = {by_node.get(nd) for nd in nodes}
+    got = nets.get(next(iter(got_names)), set()) if len(got_names) == 1 and None not in got_names else None
+    if got != nodes:
+        bad += 1; print(f"MISMATCH {n}: want {sorted(nodes)} got {sorted(got or [])} in {got_names}")
     else:
-        print(f"ok  {n:8s} {len(nodes)} pins")
-extra = [n for n in nets if n not in want and not n.startswith("unconnected")]
+        print(f"ok  {n:9s} {len(nodes):2d} pins  (KiCad net: {next(iter(got_names))})")
+wanted = {frozenset(v) for v in want.values()}
+extra = [n for n, v in nets.items() if frozenset(v) not in wanted and not n.startswith("unconnected")]
 if extra: bad += 1; print("unexpected nets:", extra)
 print("NETLIST OK" if not bad else f"{bad} PROBLEM(S)"); sys.exit(1 if bad else 0)
