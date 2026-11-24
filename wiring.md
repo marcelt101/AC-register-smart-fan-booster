@@ -30,11 +30,6 @@
  Duct probe (DS18B20):  3V3 (Pico pin 36) ──[R3 4.7k]──┬── GP16 (Pico pin 21)
                                                        └── J5 pin 2 (DQ);  J5 pin 3 = 3V3,  J5 pin 1 = GND
 
- Standalone controls (only used by the set-and-forget firmware):
-   GP26 (Pico pin 31) ── RV1 10k trimpot wiper (ends to 3V3 and GND), C4 100nF to GND   = speed
-   GP12 (Pico pin 16) ── SW2 LEARN button ── GND
-   GP10 (Pico pin 14) ──[R8 330]──▶|── D3 status LED ── GND
-
  Override switch:  GP18 (Pico pin 24) ──[R4 1k]── J6 pin 1 ── switch "ON" lug
                                                   J6 pin 2 ── switch centre (common) lug ── GND
                    GP17 (Pico pin 22) ──[R5 1k]── J6 pin 3 ── switch "OFF" lug

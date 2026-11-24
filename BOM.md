@@ -11,7 +11,7 @@ those.
 | 🛒 | Ref | Qty | Part | Spec / example | Notes |
 |---|---|---|---|---|---|
 | **Controller** ||||||
-| 🛒 | U1 | 1 | Raspberry Pi Pico W | Pico **WH** (headers pre-soldered) is easiest | W (Wi-Fi) for the smart firmware. A plain Pico / Pico H is enough for the standalone firmware |
+| 🛒 | U1 | 1 | Raspberry Pi Pico W | Pico **WH** (headers pre-soldered) is easiest | Must be the W (Wi-Fi) version |
 | 🛒 | — | 2 | Female header 1×20, 2.54 mm | straight | Socket for the Pico |
 | **Power stage** ||||||
 | 🛒 | Q1 | 1 | **SI2302CDS-T1-GE3** N-MOSFET (Vishay), 20 V 2.9 A, 75 mΩ at 2.5 V gate | SOT-23 (SMD) | Stocked at Mouser. Same pinout as the AO3400A it replaces. Buy a few spares |
@@ -28,14 +28,10 @@ those.
 | 🛒 | J5, J6 | 2 | Pin header 1×3, 2.54 mm | break from a 40-pin strip | Probe and switch |
 | 🛒 | — | 1 kit | KF2510 / Dupont 3-pin housings + crimp pins | | For fans, probe and switch cable |
 | **Fans, sensor, switch** ||||||
-| 🛒 | — | 4 (+1) | 80 mm fan, **5 V DC** | 80×80×25 mm, ~1700 rpm, ~25 dB, ≤ 0.25 A | 4 fit in your vent; +1 spare |
+| 🛒 | — | 3 (+1) | 80 mm fan, **5 V DC** | 80×80×25 mm, ~1700 rpm, ~25 dB, ≤ 0.25 A | +1 spare or 4th fan |
 | 🛒 | — | 1 | DS18B20 **waterproof probe** (chip sealed in a steel tube on a cable) | **DFRobot DFR0198** at Mouser (Adafruit 381 also fits) | Not the bare TO-92 chip. Wires: red 3V3, black GND, yellow/white/green data (check the listing) |
 | 🛒 | SW1 | 1 | Toggle switch ON-OFF-ON (SPDT centre-off) | e.g. MTS-103 | Off-board |
 | 🛒 | — | as needed | 3-core cable, 22–26 AWG | alarm / thermostat wire | Switch to J6 |
-| **Standalone controls** (speed, LEARN, status; the smart firmware ignores them) ||||||
-| 🛒 | RV1 | 1 | 10 kΩ multi-turn trimpot | **Bourns 3296W-1-103LF** | Sets fan speed in standalone mode |
-| 🛒 | SW2 | 1 | 6 × 6 mm through-hole tactile button (4-pin) | any standard 6 mm tact switch | LEARN button |
-| 🛒 | D3 | 1 | 3 mm LED, any colour | through-hole | Status. Long leg (anode) to R8 |
 | **Frame** ||||||
 | 🛒 | — | 1 | Wire mesh, **¼" (6 mm) openings or smaller** | hardware cloth (wall) or expanded metal 1–1.5 mm (floor) | Cut to size: 264 × 98 mm nominal |
 | 🛒 | — | 10 | M3 × 8 countersunk screws | stainless | 8 for 3 fans, 10 for 4 |
@@ -44,7 +40,7 @@ those.
 | optional | — | 12 | Rubber fan grommets / foam washers | | Quieter |
 | optional | — | 1 | Thin foam weatherstrip | 3–6 mm, adhesive | Seals the flange |
 | **PCB** ||||||
-| 🛒 | — | 1 | PCB fab, 80 × 65 mm, 2-layer, 1.6 mm | JLCPCB / PCBWay etc. | Minimum order is usually 5 |
+| 🛒 | — | 1 | PCB fab, 80 × 60 mm, 2-layer, 1.6 mm | JLCPCB / PCBWay etc. | Minimum order is usually 5 |
 | optional | — | 1 | Crimp tool (e.g. SN-28B) | | Only if you don't have one |
 
 ## Already have (resistors and capacitors)
@@ -58,8 +54,6 @@ those.
 | R6, R7 | 2 | **5.1 kΩ** | ¼ W axial | USB-C CC pull-downs. **Must be 5.1k**; check your kit has it |
 | C1, C3 | 2 | 100 µF electrolytic | 10 V+, low-ESR, radial 6.3 mm / 2.5 mm | Watch polarity |
 | C2 | 1 | 10 µF **ceramic** | 16 V+, X7R/X5R, radial, 5 mm leads | Check it's ceramic, not electrolytic |
-| R8 | 1 | 330 Ω | ¼ W axial | Status LED resistor |
-| C4 | 1 | 100 nF ceramic | radial, 2.5 mm leads | Smooths the speed trimpot reading |
 
 **USB-C socket soldering:** the USB4105's signal pads are 0.3 mm at 0.5 mm
 pitch. Only VBUS, GND, CC1 (A5) and CC2 (B5) are connected. The data pads (D+, D−,

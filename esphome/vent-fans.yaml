@@ -27,7 +27,7 @@ esphome:
   name: ${name}
   friendly_name: ${friendly_name}
 
-rp2:
+rp2040:
   board: rpipicow
 
 wifi:
@@ -43,8 +43,7 @@ api:
 
 ota:
   - platform: esphome
-    encryption:
-      key: !secret ota_key
+    password: !secret ota_password
 
 # --- Fan drive -------------------------------------------------------------
 globals:
