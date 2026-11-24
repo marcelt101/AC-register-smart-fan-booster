@@ -76,7 +76,7 @@ Shopping list with what to buy marked: [`BOM.md`](BOM.md) (and [`bom.csv`](bom.c
 | J6, R4, R5 | 1 + 2 | 3-pin header + 1 kΩ ¼ W ×2 | THT axial, 7.62 mm | Override switch. R4/R5 protect the Pico from the off-board wire. |
 | SW1 | 1 | ON-OFF-ON (centre-off) SPDT toggle, e.g. MTS-103, + 3-core cable + 3-pin 2.54 mm housing | off-board | Drawn on the schematic in the dashed off-board box. Mount on the wall plate, grille or a small box. Any low-voltage switch works (3.3 V, < 1 mA). |
 | — | 4 | 80 mm **5 V** fans, 25 mm thick, sleeve/hydraulic bearing, ≤ 0.25 A | | 4 fit in this vent. Pick the lowest-RPM/dBA listing. |
-| RV1, C4 | 1 + 1 | 10 kΩ multi-turn trimpot (Bourns 3296W-1-103LF) + 100 nF | THT | Standalone firmware: fan speed |
+| RV1, C4 | 1 + 1 | 20 kΩ trimpot (10k–50k all work; Bourns 3296W footprint) + 100 nF | THT | Standalone firmware: fan speed |
 | SW2 | 1 | 6 mm tactile button | THT | Standalone firmware: LEARN |
 | D3, R8 | 1 + 1 | 3 mm LED + 330 Ω | THT | Standalone firmware: status |
 | — | 1 | USB-C phone charger (5 V, **≥ 2 A**) + USB-C cable | | Plugs into J7 on the board. Any USB-C charger works; the board asks for plain 5 V. |

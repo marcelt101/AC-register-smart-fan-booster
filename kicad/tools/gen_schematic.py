@@ -113,9 +113,10 @@ PARTS = {
            (134.62, 147.32), 0, {1: "GND", 2: "ONEWIRE", 3: "+3V3"},
            "Duct temperature probe: 1 = GND (black), 2 = DQ (yellow), 3 = 3V3 (red)."),
     # ---- standalone controls: speed trimpot, LEARN button, status LED ----
-    "RV1": ("Device:R_Potentiometer_Trim", "10k SPEED", "Potentiometer_THT:Potentiometer_Bourns_3296W_Vertical",
+    "RV1": ("Device:R_Potentiometer_Trim", "20k SPEED", "Potentiometer_THT:Potentiometer_Bourns_3296W_Vertical",
             (95.25, 99.06), 180, {1: "GND", 2: "SPEED_POT", 3: "+3V3"},
-            "Fan speed for the standalone firmware. Multi-turn trimmer, e.g. Bourns 3296W-1-103LF."),
+            "Fan speed for the standalone firmware. 10k-50k all work (it is only a voltage divider). "
+            "Footprint is a Bourns 3296W multi-turn (e.g. 3296W-1-203LF for 20k); change it to match your trimpot."),
     "C4": ("Device:C", "100nF", "Capacitor_THT:C_Disc_D3.0mm_W1.6mm_P2.50mm",
            (88.9, 102.87), 0, {1: "SPEED_POT", 2: "GND"},
            "Smooths the trimpot reading."),

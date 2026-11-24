@@ -16,7 +16,7 @@ YES,Fans,—,4 (+1 spare),80 mm fan 5 V DC,"80 x 80 x 25 mm, ~1700 rpm, ~25 dB, 
 YES,Sensor,—,1,DS18B20 waterproof probe,"DFRobot DFR0198 at Mouser (Adafruit 381 also fits); steel tube on 90 cm cable",3-wire,"Not the bare TO-92 chip. Red 3V3, black GND, yellow/white/green data (check listing)"
 YES,Override,SW1,1,Toggle switch ON-OFF-ON,"SPDT centre-off, e.g. MTS-103",Panel mount,"Off-board: wall plate or small box"
 YES,Override,—,length to suit,3-core cable,"22-26 AWG (alarm / thermostat wire)",—,"Switch to J6"
-YES,Standalone,RV1,1,Trimpot 10k multi-turn,"Bourns 3296W-1-103LF",THT,"Fan speed (standalone firmware)"
+NO,Standalone,RV1,1,Trimpot 20k (10k-50k OK),"Bourns 3296W footprint, e.g. 3296W-1-203LF",THT,"Have 20k; match the KiCad footprint to their shape"
 YES,Standalone,SW2,1,Tactile button 6x6 mm,"Standard 4-pin THT tact switch",THT,"LEARN"
 YES,Standalone,D3,1,LED 3 mm,"Any colour",THT,"Status; long leg (anode) to R8"
 YES,Frame,—,1,Wire mesh,"1/4 in (6 mm) openings or smaller; hardware cloth (wall) or expanded metal 1-1.5 mm (floor)",Sheet,"Cut to size from make_stl.sh (264 x 98 mm nominal)"

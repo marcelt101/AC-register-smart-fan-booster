@@ -33,7 +33,7 @@ those.
 | 🛒 | SW1 | 1 | Toggle switch ON-OFF-ON (SPDT centre-off) | e.g. MTS-103 | Off-board |
 | 🛒 | — | as needed | 3-core cable, 22–26 AWG | alarm / thermostat wire | Switch to J6 |
 | **Standalone controls** (speed, LEARN, status; the smart firmware ignores them) ||||||
-| 🛒 | RV1 | 1 | 10 kΩ multi-turn trimpot | **Bourns 3296W-1-103LF** | Sets fan speed in standalone mode |
+| have | RV1 | 1 | 20 kΩ trimpot (10k–50k all work) | Bourns 3296W footprint (e.g. 3296W-1-203LF) | Sets fan speed in standalone mode. You have 20k ones; match the footprint to their shape in KiCad |
 | 🛒 | SW2 | 1 | 6 × 6 mm through-hole tactile button (4-pin) | any standard 6 mm tact switch | LEARN button |
 | 🛒 | D3 | 1 | 3 mm LED, any colour | through-hole | Status. Long leg (anode) to R8 |
 | **Frame** ||||||
