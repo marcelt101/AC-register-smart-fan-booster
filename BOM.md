@@ -11,7 +11,7 @@ those.
 | 🛒 | Ref | Qty | Part | Spec / example | Notes |
 |---|---|---|---|---|---|
 | **Controller** ||||||
-| 🛒 | U1 | 1 | Raspberry Pi Pico W | Pico **WH** (headers pre-soldered) is easiest | W (Wi-Fi) for the smart firmware. A plain Pico / Pico H is enough for the standalone firmware (set `board: rpipico`, the default there) |
+| 🛒 | U1 | 1 | Raspberry Pi Pico W | Pico **WH** (headers pre-soldered) is easiest | W (Wi-Fi) for the smart firmware. A plain Pico / Pico H is enough for the standalone MicroPython firmware |
 | 🛒 | — | 2 | Female header 1×20, 2.54 mm | straight | Socket for the Pico |
 | **Power stage** ||||||
 | 🛒 | Q1 | 1 | **SI2302CDS-T1-GE3** N-MOSFET (Vishay), 20 V 2.9 A, 75 mΩ at 2.5 V gate | SOT-23 (SMD) | Stocked at Mouser. Same pinout as the AO3400A it replaces. Buy a few spares |

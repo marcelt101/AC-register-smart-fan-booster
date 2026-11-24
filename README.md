@@ -12,7 +12,7 @@ vent-fans/
 ├── README.md                  ← you are here: design, BOM, install, tuning
 ├── wiring.md                  ← schematic in ASCII, connector pinouts, field wiring
 ├── esphome/vent-fans.yaml     ← smart firmware: Pico W + Home Assistant (validated, ESPHome 2026.11)
-├── esphome/vent-fans-standalone.yaml ← set-and-forget firmware: no Wi-Fi, no HA (same PCB)
+├── micropython/main.py        ← set-and-forget firmware: MicroPython, no Wi-Fi/HA, nothing to compile (same PCB)
 ├── homeassistant/automation.yaml
 ├── frame/                     ← 3D-printable fan frame: frame.scad, make_stl.sh, stl/, README
 ├── sim/                       ← ngspice models, ./run_all.sh, plot.py, results.txt, plots
@@ -184,13 +184,13 @@ Note that this overwrites any routing you've done, so only use it before you rou
 
 ## Standalone (set-and-forget) version
 
-The same PCB runs without Wi-Fi or Home Assistant: flash
-[`esphome/vent-fans-standalone.yaml`](esphome/vent-fans-standalone.yaml) instead
-of `vent-fans.yaml`. A plain Pico (no W) is enough. Any of Pico, Pico W,
-Pico 2 or Pico 2 W fits the same socket: set `board:` in the YAML to match (it
-defaults to `rpipico`). The pins the board uses are the same on all of them;
-only internal pins differ (GP23/24/25/29, which run the Wi-Fi chip on the W
-models), and the firmware leaves those alone.
+The same PCB runs without Wi-Fi or Home Assistant on
+[MicroPython](micropython/README.md): put MicroPython on the Pico, then copy
+[`micropython/main.py`](micropython/main.py) onto it with Thonny. Nothing to
+compile. A plain Pico (no W) is enough; Pico, Pico W, Pico 2 and Pico 2 W all
+fit the same socket and use the same pins (only internal pins GP23/24/25/29
+differ, and the firmware leaves them alone). Install steps, LED codes and how
+to edit the settings are in [`micropython/README.md`](micropython/README.md).
 
 **How it decides:** the duct probe watches the supply air. Fans start when the
 air is hotter than the **heating threshold** or colder than the **cooling
@@ -217,8 +217,8 @@ Until you calibrate, the defaults are 32 °C (90 °F) and 16 °C (61 °F).
 - **Hold LEARN 5 s:** back to the defaults (5 blinks).
 - **Status LED:** on = fans running, off = idle, slow blink = no probe (fans
   stay off in AUTO).
-- **USB log:** plug the Pico's micro-USB into a PC to watch the duct, resting
-  and threshold temperatures every 30 s.
+- **USB log:** connect Thonny to see the duct, resting and threshold
+  temperatures every 30 s (see `micropython/README.md`).
 
 ## Safety and install notes
 
