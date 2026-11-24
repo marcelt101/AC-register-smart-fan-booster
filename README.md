@@ -11,7 +11,8 @@ AUTO. One USB-C phone charger powers each board.
 vent-fans/
 ├── README.md                  ← you are here: design, BOM, install, tuning
 ├── wiring.md                  ← schematic in ASCII, connector pinouts, field wiring
-├── esphome/vent-fans.yaml     ← Pico W firmware (validated with ESPHome 2026.11)
+├── esphome/vent-fans.yaml     ← smart firmware: Pico W + Home Assistant (validated, ESPHome 2026.11)
+├── esphome/vent-fans-standalone.yaml ← set-and-forget firmware: no Wi-Fi, no HA (same PCB)
 ├── homeassistant/automation.yaml
 ├── frame/                     ← 3D-printable fan frame: frame.scad, make_stl.sh, stl/, README
 ├── sim/                       ← ngspice models, ./run_all.sh, plot.py, results.txt, plots
@@ -28,7 +29,7 @@ vent-fans/
 | 3 | 25 kHz PWM | 40 kHz | Still inaudible. A 100 µH inductor is enough at this frequency (ripple ≈ 0.15 A). |
 | 4 | Speed jumps instantly | **Soft-start in firmware**: 2 % every 20 ms | Going straight from 0 to 60 % rings the LC filter: **2.1 A** inductor peak. With the slew limiter it's **0.44 A**, so a small 1 A inductor never saturates. See `plot_powerup.png`. |
 | 5 | IRLZ44N / AO3400 | **SI2302CDS** (Vishay, SOT-23; AO3400A also fits) | Fully on from the Pico's 3.3 V gate drive (75 mΩ max at 2.5 V). The simulations used an AO3400A model (~32 mΩ); the SI2302CDS's higher resistance still means under 50 mW even with 4 fans at full speed, so no heatsink. Chosen because Mouser stocks it. The IRLZ44N is only specified from 4 V gate drive and is huge. |
-| 6 | Breadboard wiring | **Carrier PCB, 80 × 60 mm**, through-hole resistors and capacitors, **USB-C power socket**: Pico W socketed, 4 keyed fan headers, override-switch header, DS18B20 duct-probe header | Fewer loose joints in a dusty, warm, vibrating spot. Fans unplug for cleaning. |
+| 6 | Breadboard wiring | **Carrier PCB, 80 × 65 mm**, through-hole resistors and capacitors, **USB-C power socket**: Pico W socketed, 4 keyed fan headers, override-switch header, DS18B20 duct-probe header | Fewer loose joints in a dusty, warm, vibrating spot. Fans unplug for cleaning. |
 | 7 | Automation used `delay` + `trigger.to_state` | `for:` on the triggers, re-sync on HA restart and when the board reconnects | The old version could leave fans running after an HA restart. `for:` doesn't drop a pending off when the thermostat chatters. |
 | 8 | ESPHome reboots when HA is down | `reboot_timeout: 0s`, plus an on-board fallback from the duct probe | The fans keep working (or stay safely off) with HA down. |
 | 9 | 3 fans | **Header for a 4th fan**; inductor spec raised to Isat ≥ 1.5 A, diode to SS24 | Four worst-case 0.25 A fans at full speed draw 0.84 A in simulation; the 5 V rail stays ≥ 4.87 V and the FET dissipates 23 mW. |
@@ -74,7 +75,10 @@ Shopping list with what to buy marked: [`BOM.md`](BOM.md) (and [`bom.csv`](bom.c
 | J5, R3 | 1 + 1 | 3-pin header + 4.7 kΩ ¼ W | THT axial, 7.62 mm | For the DS18B20 probe (R3 is its pull-up) |
 | J6, R4, R5 | 1 + 2 | 3-pin header + 1 kΩ ¼ W ×2 | THT axial, 7.62 mm | Override switch. R4/R5 protect the Pico from the off-board wire. |
 | SW1 | 1 | ON-OFF-ON (centre-off) SPDT toggle, e.g. MTS-103, + 3-core cable + 3-pin 2.54 mm housing | off-board | Drawn on the schematic in the dashed off-board box. Mount on the wall plate, grille or a small box. Any low-voltage switch works (3.3 V, < 1 mA). |
-| — | 3 (or 4) | 80 mm (or 60 mm) **5 V** fans, 25 mm thick, sleeve/hydraulic bearing, ≤ 0.25 A | | Pick the lowest-RPM/dBA listing. Budget generic is fine. |
+| — | 4 | 80 mm **5 V** fans, 25 mm thick, sleeve/hydraulic bearing, ≤ 0.25 A | | 4 fit in this vent. Pick the lowest-RPM/dBA listing. |
+| RV1, C4 | 1 + 1 | 10 kΩ multi-turn trimpot (Bourns 3296W-1-103LF) + 100 nF | THT | Standalone firmware: fan speed |
+| SW2 | 1 | 6 mm tactile button | THT | Standalone firmware: LEARN |
+| D3, R8 | 1 + 1 | 3 mm LED + 330 Ω | THT | Standalone firmware: status |
 | — | 1 | USB-C phone charger (5 V, **≥ 2 A**) + USB-C cable | | Plugs into J7 on the board. Any USB-C charger works; the board asks for plain 5 V. |
 | — | 1 | Waterproof DS18B20 probe (stainless tube, 1–3 m cable) + 3-pin 2.54 mm housing | | Duct temperature: shown in HA, runs the fans when HA is down |
 | — | 1 | Wire mesh, **¼" (6 mm) openings or smaller**: hardware cloth, or expanded metal for a floor vent | | Replaces the grille; cut to the size `frame/make_stl.sh` prints. See [`frame/README.md`](frame/README.md). |
@@ -127,12 +131,12 @@ default. The board takes either.
 
 ## Routing the board
 
-The board in `kicad/vent_fans.kicad_pcb` is 80 × 60 mm and two-layer. It already
+The board in `kicad/vent_fans.kicad_pcb` is 80 × 65 mm and two-layer. It already
 has a GND pour on both layers and a copper keep-out under the Pico W antenna.
 The `Power` net class (0.8 mm tracks) covers VBUS_IN, +5V, GND, FAN- and SW. Signals
 default to 0.3 mm.
 
-1. Open the PCB and press **B** to refill zones. The ratsnest shows the 32
+1. Open the PCB and press **B** to refill zones. The ratsnest shows the 39
    connections still to route.
 2. Route the **switching loop** first and keep it tiny: C2 → D1 cathode, D1
    anode → Q1 drain, Q1 source → GND via next to C2's GND pad. This is the only
@@ -177,6 +181,40 @@ Note that this overwrites any routing you've done, so only use it before you rou
   and `duct_idle_high` at the top of `vent-fans.yaml`. Watch **Duct
   temperature** in HA for a day of heating or cooling, then set them between
   what you see with the blower running and with it off.
+
+## Standalone (set-and-forget) version
+
+The same PCB runs without Wi-Fi or Home Assistant: flash
+[`esphome/vent-fans-standalone.yaml`](esphome/vent-fans-standalone.yaml) instead
+of `vent-fans.yaml`. A plain Pico (no W) is enough.
+
+**How it decides:** the duct probe watches the supply air. Fans start when the
+air is hotter than the **heating threshold** or colder than the **cooling
+threshold** for 20 s, and stop once it has been back between them (minus a
+2 °C margin) for 60 s. The fans can't fool it: they move air, but they can't
+make it hot or cold. It needs a duct that rests near room temperature (a
+basement, crawlspace or slab, not an attic). It doesn't react to fan-only mode
+(blower with no heating or cooling).
+
+**Set-up, once:**
+1. **Speed:** flip the override switch to ON. Turn the SPEED trimpot (RV1)
+   until the fans are as quiet as you like while still pushing air. Flip back
+   to the centre (AUTO).
+2. **Heating threshold:** in winter, while the furnace is heating, press
+   **LEARN** once. The LED blinks 3×.
+3. **Cooling threshold:** in summer, while the AC is cooling, press **LEARN**
+   once. The LED blinks 2×.
+
+Each press sets that threshold halfway between the duct's resting temperature
+(tracked while nothing is running) and the current temperature, and saves it.
+Until you calibrate, the defaults are 32 °C (90 °F) and 16 °C (61 °F).
+- **10 blinks:** the air isn't hot or cold enough yet to learn from, or the
+  board only just started; try again in a few minutes.
+- **Hold LEARN 5 s:** back to the defaults (5 blinks).
+- **Status LED:** on = fans running, off = idle, slow blink = no probe (fans
+  stay off in AUTO).
+- **USB log:** plug the Pico's micro-USB into a PC to watch the duct, resting
+  and threshold temperatures every 30 s.
 
 ## Safety and install notes
 

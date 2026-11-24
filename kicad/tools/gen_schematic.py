@@ -33,7 +33,9 @@ PICO_NETS = {n: "GND" for n, nm in PICO.items() if nm in ("GND", "AGND")}
 # Power comes from the board's USB-C socket into VSYS through D2 (the Pico
 # datasheet's recommended way); VBUS (pin 40) is left to the Pico's own
 # micro-USB, so the Pico can be plugged into a PC while the charger is in.
-PICO_NETS.update({39: "VSYS", 36: "+3V3", 20: "FAN_PWM", 21: "ONEWIRE", 24: "OVR_ON", 22: "OVR_OFF"})
+PICO_NETS.update({39: "VSYS", 36: "+3V3", 20: "FAN_PWM", 21: "ONEWIRE", 24: "OVR_ON", 22: "OVR_OFF",
+                  # standalone (set-and-forget) controls; the Home Assistant firmware ignores them
+                  31: "SPEED_POT", 14: "LED", 16: "LEARN"})
 
 FAN_X = [132.08, 149.86, 167.64, 185.42]   # fan columns between the +5V and FAN- rails
 RAIL_5V, RAIL_FANM, SW_Y = 48.26, 86.36, 101.6
@@ -110,6 +112,22 @@ PARTS = {
            "Connector_PinHeader_2.54mm:PinHeader_1x03_P2.54mm_Vertical",
            (134.62, 147.32), 0, {1: "GND", 2: "ONEWIRE", 3: "+3V3"},
            "Duct temperature probe: 1 = GND (black), 2 = DQ (yellow), 3 = 3V3 (red)."),
+    # ---- standalone controls: speed trimpot, LEARN button, status LED ----
+    "RV1": ("Device:R_Potentiometer_Trim", "10k SPEED", "Potentiometer_THT:Potentiometer_Bourns_3296W_Vertical",
+            (95.25, 99.06), 180, {1: "GND", 2: "SPEED_POT", 3: "+3V3"},
+            "Fan speed for the standalone firmware. Multi-turn trimmer, e.g. Bourns 3296W-1-103LF."),
+    "C4": ("Device:C", "100nF", "Capacitor_THT:C_Disc_D3.0mm_W1.6mm_P2.50mm",
+           (88.9, 102.87), 0, {1: "SPEED_POT", 2: "GND"},
+           "Smooths the trimpot reading."),
+    "SW2": ("Switch:SW_Push", "LEARN", "Button_Switch_THT:SW_PUSH_6mm",
+            (35.56, 114.3), 0, {1: "GND", 2: "LEARN"},
+            "Standalone firmware: press while heating or cooling runs to learn the threshold; hold 5 s to reset."),
+    "R8": ("Device:R", "330", "Resistor_THT:R_Axial_DIN0207_L6.3mm_D2.5mm_P7.62mm_Horizontal",
+           (36.83, 109.22), 270, {1: "LED", 2: "LED_A"},
+           "Status LED resistor (~4 mA)."),
+    "D3": ("Device:LED", "STATUS", "LED_THT:LED_D3.0mm",
+           (26.67, 109.22), 0, {1: "GND", 2: "LED_A"},
+           "Status LED: on = fans running, blinks to confirm LEARN."),
     "H1": ("Mechanical:MountingHole", "M3", "MountingHole:MountingHole_3.2mm_M3",
            (25.4, 182.88), 0, {}, "Mounting hole."),
     "H2": ("Mechanical:MountingHole", "M3", "MountingHole:MountingHole_3.2mm_M3",
@@ -125,6 +143,11 @@ TEXT = {
     "R2": ((-2.54, -1.27), (-2.54, 1.27), " (justify right)"),
     "J6": ((0, -6.35), (0, 6.35), ""),
     "J7": ((0, -22.86), (0, -20.32), ""),
+    "RV1": ((3.81, -1.27), (3.81, 1.27), " (justify right)"),  # flipped by the 180 deg rotation
+    "C4": ((-2.54, -1.27), (-2.54, 1.27), " (justify right)"),
+    "SW2": ((0, 3.81), (0, 6.35), ""),
+    "R8": ((0, -2.54), (0, -5.08), ""),
+    "D3": ((0, -2.54), (0, -5.08), ""),
     "F1": ((0, -2.54), (0, 2.54), ""),
     "D2": ((2.54, -1.27), (2.54, 1.27), " (justify right)"),  # flipped by the 90 deg rotation
     "SW1": ((0, -6.35), (0, 12.7), ""),
@@ -502,6 +525,16 @@ def build_schematic():
     stub_power("J5", 1, "GND", (-1, 0))
     stub_power("J5", 3, "+3V3", (-1, 0))
     label("ONEWIRE", 86.36, P("J5", 2)[1])
+
+    # standalone controls
+    poly(P("U1", 31), P("RV1", 2))                      # GP26 -> trimpot wiper (C4 taps the same wire)
+    power("+3V3", *P("RV1", 3)); power("GND", *P("RV1", 1)); power("GND", *P("C4", 2))
+    poly(P("U1", 14), P("R8", 1)); poly(P("R8", 2), P("D3", 2))   # GP10 -> R8 -> LED anode
+    k = P("D3", 1); poly(k, (k[0], G(k[1] + 2.54))); power("GND", k[0], G(k[1] + 2.54))
+    poly(P("U1", 16), P("SW2", 2))                      # GP12 -> LEARN button -> GND
+    b = P("SW2", 1); poly(b, (b[0], G(b[1] + 2.54))); power("GND", b[0], G(b[1] + 2.54))
+    text(12.7, 101.6, "Standalone controls", 1.27)
+    text(99.06, 93.98, "Speed trimpot", 1.0)
 
     # GND needs a flag (the Pico's GND pins are passive)
     power("FLAG", 25.4, 160.02)

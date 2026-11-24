@@ -5,7 +5,7 @@ Run with the system Python that has KiCad's pcbnew module:
     /usr/bin/python3 tools/gen_pcb.py            # place + outline + GND pours
     /usr/bin/python3 tools/gen_pcb.py --ses X    # ...and import a Freerouting session
 
-Board: 80 x 60 mm, 2 layers. Pico W across the top with its USB end at the
+Board: 80 x 65 mm, 2 layers. Pico W across the top with its USB end at the
 left edge; power stage underneath; fan headers down the right edge.
 """
 import os, sys
@@ -15,7 +15,7 @@ HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
 import gen_schematic as g
 
 FPDIR = "/usr/share/kicad/footprints"
-OX, OY, W, H = 100.0, 100.0, 80.0, 60.0
+OX, OY, W, H = 100.0, 100.0, 80.0, 65.0
 mm = pcbnew.FromMM
 
 # ref: (x, y, rotation, side)  -- absolute board coordinates in mm
@@ -43,8 +43,14 @@ PLACE = {
     "Q1": (147.0, 131.0, 0, "F"),
     "R1": (153.5, 125.5, 270, "F"),    # GP15 -> gate, runs down from the Pico's GP15 corner
     "R2": (139.0, 127.0, 0, "F"),      # gate pull-down
-    "H1": (104.0, 155.5, 0, "F"),
-    "H2": (176.0, 155.5, 0, "F"),
+    "H1": (104.0, 160.5, 0, "F"),
+    "H2": (176.0, 160.5, 0, "F"),
+    # standalone controls along the bottom edge, reachable when mounted
+    "RV1": (118.0, 157.5, 0, "F"),     # speed trimpot (multi-turn, adjust from the top)
+    "C4": (125.0, 157.5, 0, "F"),
+    "SW2": (133.0, 155.0, 0, "F"),     # LEARN button (6 mm tactile)
+    "D3": (145.0, 157.5, 0, "F"),      # status LED
+    "R8": (150.0, 157.5, 0, "F"),
 }
 # Pico W Wi-Fi antenna: last ~10 mm of the module, between the pin rows.
 ANTENNA_KEEPOUT = (142.0, 105.2, 153.0, 119.8)
@@ -122,8 +128,10 @@ def build(ses=None, pours=True):
         segment(board, pcbnew.Edge_Cuts, corners[i], corners[(i + 1) % 4], 0.1)
 
     # silkscreen notes
-    for (x, y, txt, sz) in [(124.0, 157.6, "FAN- is NOT GND", 0.9),
-                            (146.0, 157.6, "VENT FAN CTRL v1.2", 0.9),
+    for (x, y, txt, sz) in [(124.0, 151.4, "FAN- is NOT GND", 0.9),
+                            (164.0, 163.0, "VENT FAN CTRL v1.3", 0.9),
+                            (120.5, 162.8, "SPEED", 0.8), (136.3, 162.8, "LEARN", 0.8),
+                            (146.3, 162.8, "STATUS", 0.8),
                             (172.0, 104.5, "FAN 1", 0.8), (172.0, 113.5, "FAN 2", 0.8),
                             (172.0, 122.5, "FAN 3", 0.8), (172.0, 131.5, "FAN 4", 0.8),
                             (154.0, 149.6, "PROBE", 0.8), (165.0, 149.6, "SW: ON-GND-OFF", 0.8)]:
