@@ -186,7 +186,11 @@ Note that this overwrites any routing you've done, so only use it before you rou
 
 The same PCB runs without Wi-Fi or Home Assistant: flash
 [`esphome/vent-fans-standalone.yaml`](esphome/vent-fans-standalone.yaml) instead
-of `vent-fans.yaml`. A plain Pico (no W) is enough.
+of `vent-fans.yaml`. A plain Pico (no W) is enough. Any of Pico, Pico W,
+Pico 2 or Pico 2 W fits the same socket: set `board:` in the YAML to match (it
+defaults to `rpipico`). The pins the board uses are the same on all of them;
+only internal pins differ (GP23/24/25/29, which run the Wi-Fi chip on the W
+models), and the firmware leaves those alone.
 
 **How it decides:** the duct probe watches the supply air. Fans start when the
 air is hotter than the **heating threshold** or colder than the **cooling

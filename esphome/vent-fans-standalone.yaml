@@ -38,7 +38,14 @@ esphome:
       - lambda: id(boot_s) = 0;
 
 rp2:
-  board: rpipicow          # also fine on a plain Pico: change to rpipico
+  # Any Pico works; set this to the board you plug in:
+  #   rpipico   = Pico / Pico H (RP2040, no Wi-Fi)  <- cheapest, recommended here
+  #   rpipicow  = Pico W / WH
+  #   rpipico2  = Pico 2,  rpipico2w = Pico 2 W (RP2350)
+  # All pins this firmware uses (GP10, 12, 15, 16, 17, 18, 26) are identical on
+  # all four. It never touches GP23/24/25/29, which are internal and differ
+  # between the W and non-W boards (on the W they run the Wi-Fi chip).
+  board: rpipico
 
 logger:                    # USB serial log, handy for checking temperatures
 
